@@ -1,0 +1,79 @@
+{
+  "phase": "0.5 Pilot",
+  "timestamp": "2026-07-27 09:53:17",
+  "n_traces": 6,
+  "source": "sample",
+  "gcp": {
+    "rbe": {
+      "passed": false,
+      "mean_gcs": 0.9727645737343781,
+      "ci": [
+        0.9182937212031342,
+        1.0
+      ]
+    },
+    "sbe": {
+      "passed": true,
+      "mean_gcs": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ]
+    },
+    "rbe_rand": {
+      "passed": false,
+      "mean_gcs": 0.09915170426698265,
+      "ci": [
+        0.04908556896023621,
+        0.1573473192833483
+      ]
+    }
+  },
+  "synthetic": {
+    "rbe": {
+      "extraction_rate": 1.0,
+      "node_type_accuracy": 0.7574074074074074,
+      "edge_f1": 0.7252525252525253,
+      "viable": true
+    },
+    "sbe": {
+      "extraction_rate": 1.0,
+      "node_type_accuracy": 0.5648148148148149,
+      "edge_f1": 0.5802469135802468,
+      "viable": false
+    },
+    "rbe_rand": {
+      "extraction_rate": 1.0,
+      "node_type_accuracy": 0.3462962962962963,
+      "edge_f1": 0.7222222222222222,
+      "viable": false
+    }
+  },
+  "iaa": {
+    "graph_level": {
+      "fleiss_kappa": 0.26349206349206356,
+      "mean_pairwise_similarity": 0.3862433862433863
+    },
+    "motif_level": {
+      "mean_pearson_r": 0.762029605494202
+    },
+    "structure_level": {
+      "mean_ged_similarity": 0.6784160993357845
+    }
+  },
+  "baseline": {
+    "real_tsi": 0.44978625774383546,
+    "threshold_95": 0.866025447845459,
+    "stable": false
+  },
+  "length_bias": {
+    "rbe": {
+      "mean_similarity_to_random": 0.20727513227513228,
+      "length_bias_detected": false
+    },
+    "sbe": {
+      "mean_similarity_to_random": 0.3371693121693122,
+      "length_bias_detected": true
+    }
+  }
+}

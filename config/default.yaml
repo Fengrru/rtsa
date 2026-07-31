@@ -1,0 +1,34 @@
+# RTSA v3.2 — Default Experiment Configuration
+# Override individual settings via RTSA_CONFIG env var.
+
+pipeline:
+  extractors: ["rbe", "sbe", "rbe_rand"]
+  cot_samples: 100
+  seed: 42
+
+gcp:
+  n_bootstrap: 2000
+  pass_mean: 0.80
+  pass_min: 0.60
+  pass_ci_lower: 0.70
+
+iaa:
+  n_samples: 100
+  wl_iterations: 3
+
+baselines:
+  jp_dpr_k: 100
+  n_swaps: 10
+  tsi_percentile: 95.0
+
+power_analysis:
+  target_auc_improvement: 0.05
+  baseline_auc: 0.60
+  alpha: 0.05
+  power: 0.80
+
+prune:
+  use_calibration_signal: false
+  calibration_weight: 0.35
+  use_prm_signal: false
+  prm_weight: 0.30

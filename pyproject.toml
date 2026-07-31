@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtsa"
+version = "3.3.0"
+description = "Reasoning Trace Structure Analysis Toolkit — extract, analyze, prune, fingerprint, and benchmark CoT reasoning graphs"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Fengrru"}]
+requires-python = ">=3.10"
+keywords = [
+    "chain-of-thought",
+    "reasoning",
+    "llm",
+    "graph-analysis",
+    "pruning",
+    "redundancy-detection",
+    "structured-reasoning",
+    "cot-evaluation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Fengrru/rtsa"
+Repository = "https://github.com/Fengrru/rtsa"
+Issues = "https://github.com/Fengrru/rtsa/issues"
+Documentation = "https://github.com/Fengrru/rtsa#readme"
+Changelog = "https://github.com/Fengrru/rtsa/blob/main/CHANGELOG.md"
+
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+    "networkx>=3.1",
+    "scikit-learn>=1.3.0",
+    "statsmodels>=0.14.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "spacy>=3.6.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.65.0",
+    "pydantic>=2.0",
+    "orjson>=3.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+]
+llm = [
+    "openai>=1.0.0",
+    "anthropic>=0.20.0",
+    "transformers>=4.35.0",
+    "torch>=2.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.scripts]
+rtsa = "core.__main__:main"
+
+[project.gui-scripts]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = ["-v", "--tb=short"]
