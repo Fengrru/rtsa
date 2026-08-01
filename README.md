@@ -1,13 +1,17 @@
-# RTSA
+<h1 align="center">RTSA</h1>
 
-**Reasoning Trace Structure Analysis** — study Chain-of-Thought reasoning as a structured graph; no white-box model access required.
+<p align="center"><strong>Reasoning Trace Structure Analysis</strong> — study Chain-of-Thought reasoning as a structured graph; no white-box model access required.</p>
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-green.svg)](https://github.com/Fengrru/rtsa/actions)
-[![tests: 322](https://img.shields.io/badge/tests-322%20passing-green.svg)](https://github.com/Fengrru/rtsa/actions)
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://github.com/Fengrru/rtsa/actions"><img src="https://img.shields.io/badge/CI-GitHub%20Actions-green.svg" alt="CI"></a>
+  <a href="https://github.com/Fengrru/rtsa/actions"><img src="https://img.shields.io/badge/tests-322%20passing-green.svg" alt="tests: 322"></a>
+</p>
 
-[Documentation](docs/README.md) · [API Reference](docs/api.md) · [Comparison](docs/comparison.md) · [Changelog](CHANGELOG.md)
+<p align="center"><a href="docs/README.md">Documentation</a> · <a href="docs/api.md">API Reference</a> · <a href="docs/comparison.md">Comparison</a> · <a href="CHANGELOG.md">Changelog</a></p>
+
+---
 
 ## Motivation
 
