@@ -5,22 +5,25 @@
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-green.svg)](https://github.com/Fengrru/rtsa/actions)
 [![tests: 322](https://img.shields.io/badge/tests-322%20passing-green.svg)](https://github.com/Fengrru/rtsa/actions)
 
-**把大模型的思维链（Chain-of-Thought）当作结构化图来研究。**
+**Study Chain-of-Thought reasoning as a structured graph — no white-box model access required.**
 
-RTSA 将 CoT 文本解析为带类型的 DAG（Retrieve / Transform / Verify / Branch /
-Backtrack / Compare），并在此之上提供验证、分析、剪枝、步骤级正确性预测、
-指纹识别与基准评测——全部基于纯文本，**无需白盒访问模型内部状态**。
+[Documentation](docs/README.md) · [API Reference](docs/api.md) · [Comparison](docs/comparison.md) · [Changelog](CHANGELOG.md)
 
-- [快速开始](#快速开始) · [核心能力](#核心能力) · [Pipeline](#pipeline) ·
-  [实验入口](#统一实验入口) · [文档](#文档) · [引用](#引用)
+## Motivation
 
-## 快速开始
+Long reasoning traces are expensive to generate, opaque to inspect, and hard to verify — yet most tooling treats them as flat strings. RTSA parses CoT text into a typed DAG (Retrieve / Transform / Verify / Branch / Backtrack / Compare) and makes structural analysis practical: where the redundancy is, which step is likely wrong, whether structure predicts correctness, and who wrote the trace. Everything is computed from the text alone, so it works with any API-only model, requires no annotations, and every analysis is reproducible through a versioned experiment entrypoint.
+
+## Example Extraction
+
+![RTSA extraction of a MATH trace](docs/images/example_graph.png)
+
+Real extraction (rule-based) of a MATH problem's human solution: 6 nodes, 8 edges. Each node type carries a distinct color; the graph is the input to every downstream analysis.
+
+## Quickstart
 
 ```bash
 pip install rtsa
 ```
-
-三行代码跑通全流程：
 
 ```python
 from extractors import RuleBasedExtractor
@@ -35,95 +38,101 @@ report = RedundancyAnalyzer(config=PruneConfig()).analyze(graph, apply_pruning=T
 print(report.summary())
 ```
 
-命令行：
-
 ```bash
 rtsa extract cot.txt --extractor rbe --output graph.json
 rtsa validate graph.json
 rtsa prune graph.json --apply --output pruned.json
 ```
 
-## 能回答什么问题
+## What RTSA Answers
 
-| 问题 | 答案 |
+| Question | Answer |
 |---|---|
-| 这条推理冗余吗？冗余在哪？ | 区域级冗余检测 + 可执行的 DAG 剪枝（`analysis/prune.py`） |
-| 这一步推理正确吗？ | 基于 17 维结构特征的黑盒步骤分类器（`analysis/step_classifier.py`，受 CRV 启发） |
-| 结构能预测正确性吗？ | 19 项结构指标与正确性/性能分数的基准评测，FDR 校正 + bootstrap 置信区间（`analysis/performance_correlation.py`） |
-| 哪家模型写的？ | 基于结构风格的作者指纹（`rtsa fingerprint`） |
-| 两条推理有多像？ | 有监督 Robust-TSI + 无监督 WL-kernel 相似度 |
+| Is this trace redundant, and where? | Region-level redundancy detection + executable DAG pruning (`analysis/prune.py`) |
+| Is this reasoning step correct? | Black-box step classifier on 17 structural features (`analysis/step_classifier.py`, CRV-inspired) |
+| Does structure predict correctness? | 19-metric benchmark with FDR correction and bootstrap CIs (`analysis/performance_correlation.py`) |
+| Which model wrote this? | Structural-style authorship fingerprinting (`rtsa fingerprint`) |
+| How similar are two traces? | Supervised Robust-TSI + unsupervised WL-kernel similarity |
 
-## 核心能力
+## Capabilities
 
-| 能力 | 实现 | 备注 |
+| Capability | Implementation | Maturity |
 |---|---|---|
-| CoT → 图提取 | `extractors/` | 规则 / 依存句法 / LLM / 随机基线 4 族提取器 |
-| 结构验证 | `core/ngs_validator.py` | 13 条 NGS 规则 + Type I/II 失败模式分类（7 类） |
-| 冗余剪枝 | `analysis/prune.py` | 4 种冗余检测器，DAG 完整性保持，支持 domain 自适应阈值 |
-| 步骤级分析 | `analysis/step_classifier.py` `step_clustering.py` | 17 维特征错误概率 + 语义宏步聚类（LLM-MindMap 式） |
-| 相似度与指纹 | `core/robust_tsi.py` `analysis/fingerprint.py` | 有监督 TSI / 无监督 WL-kernel / 作者识别 |
-| 统计严谨性 | `core/robust_tsi.py` `analysis/performance_correlation.py` | bootstrap 置信区间、Cohen's d 效应量、剪枝节省误差带、BH-FDR 多重比较校正 |
-| 性能相关性基准 | `analysis/performance_correlation.py` | 19 指标 × 3 家族（全局/类型构成/形状），Spearman + FDR + bootstrap rho CI，输出论文表格 |
-| 基准评测 | `analysis/benchmark.py` | GCP + NGS 通过率 + TSI + 计划冗余度 |
-| 数据集接入 | `utils/hf_adapter.py` | 任意 HuggingFace CoT 数据集（gsm8k / math / 自定义） |
-| 可观测性 | `utils/trace_exporters.py` | OTLP / Langfuse 导出，缺依赖自动降级 |
-| 可复现实验 | `experiments/run.py` | 统一入口 + 版本化结果目录 + manifest 溯源 |
+| CoT -> graph extraction | `extractors/` (rule / syntax / LLM / random baselines) | Stable |
+| Structural validation | `core/ngs_validator.py` — 13 NGS rules, Type I/II failure modes (7 classes) | Stable |
+| Redundancy pruning | `analysis/prune.py` — 4 detectors, DAG-preserving, domain-adaptive thresholds | Stable |
+| Step-level analysis | `analysis/step_classifier.py` `step_clustering.py` — 17-dim error probability, macro-step clustering | Evolving |
+| Similarity & fingerprinting | `core/robust_tsi.py` `analysis/fingerprint.py` — supervised TSI, WL-kernel, authorship | Stable |
+| Performance-correlation benchmark | `analysis/performance_correlation.py` — 19 metrics, Spearman + BH-FDR + bootstrap CI | Evolving |
+| Statistical rigor | `core/robust_tsi.py` — bootstrap CI, Cohen's d, savings error bands | Stable |
+| Extractor benchmarking | `analysis/benchmark.py` — GCP + NGS pass rate + TSI | Stable |
+| Dataset adapters | `utils/hf_adapter.py` — any HuggingFace CoT dataset | Evolving |
+| Observability | `utils/trace_exporters.py` — OTLP / Langfuse, no-op fallback | Experimental |
+| Reproducible experiments | `experiments/run.py` — versioned runs + manifest.json | Stable |
+
+Maturity levels: **Stable** (battle-tested, covered by tests) · **Evolving** (functional, API may shift) · **Experimental** (proof of concept, optional deps).
 
 ## Pipeline
 
 ```
 raw CoT text (JSONL / HuggingFace datasets)
-    │  extractors: RBE (rule) · SBE (syntax) · LLM · random baselines
-    ▼
+    |  extractors: RBE (rule) · SBE (syntax) · LLM · random baselines
+    v
 ReasoningTraceGraph (typed DAG)
-    │
-    ├──► validate    NGS structural rules + failure-mode taxonomy
-    ├──► analyze     graph metrics, motifs, TSI/JSD, structure↔correctness
-    ├──► prune       redundancy regions → pruned graph (DAG-preserving)
-    ├──► classify    per-step error probability (GradientBoosting)
-    └──► benchmark   GCP · NGS pass rate · TSI · authorship fingerprint
+    |
+    +--> validate    NGS structural rules + failure-mode taxonomy
+    +--> analyze     graph metrics, motifs, TSI/JSD, structure<->correctness
+    +--> prune       redundancy regions -> pruned graph (DAG-preserving)
+    +--> classify    per-step error probability (GradientBoosting)
+    +--> benchmark   GCP · NGS pass rate · TSI · authorship fingerprint
 ```
 
-## 与研究前沿的关系
+## Related Work
 
-| 工作 | 我们的对应实现 |
+| Work | Focus | RTSA counterpart |
+|---|---|---|
+| [LLM-MindMap](https://arxiv.org/abs/2505.13890) (EMNLP 2025) | Semantic step clustering; structural metrics predict performance | `analysis/step_clustering.py` + `analysis/performance_correlation.py` |
+| [CRV](https://arxiv.org/abs/2510.09312) (Meta FAIR) | Verify reasoning steps from structural features (AUROC 70-92%); signatures are domain-dependent | `analysis/step_classifier.py` + `PruneConfig.domain_overrides` |
+| [CoT2Graph](https://openreview.net/forum?id=0XfuJjhaI5) | CoT-to-graph with reasoning-path validation and failure modes | `core/ngs_validator.py` failure-mode taxonomy |
+
+A capability-by-capability matrix is maintained in [docs/comparison.md](docs/comparison.md).
+
+## Reproducible Experiments
+
+```bash
+python -m experiments.run extract     --dataset gsm8k --max-traces 50
+python -m experiments.run correlation --synthetic
+```
+
+Every run lands in `experiments/results/runs/<command>_<timestamp>/` with a `manifest.json` recording git commit, Python version, arguments, and UTC timestamp. See the [full CLI](docs/api.md#layer-5-experiments-experiments) for all subcommands.
+
+## Results
+
+Selected numbers from the built-in validation and real-data runs (reproducible via the commands above):
+
+| Result | Value |
 |---|---|
-| **LLM-MindMap**（EMNLP 2025）— 语义步聚类 + 结构指标预测性能 | `analysis/step_clustering.py` + `experiments/correlation_analysis.py` |
-| **CRV**（Meta FAIR, arXiv 2510.09312）— 图特征验证推理步 | `analysis/step_classifier.py` + `PruneConfig.domain_overrides` |
-| **CoT2Graph** — 推理路径验证与失败模式 | `core/ngs_validator.py` 失败模式分类 |
+| Structural pruning, synthetic corpus | ~12.5% node compression, ~31 tokens/trace saved, 100% NGS pass rate |
+| Structural pruning, GSM8K | self-limits to ~2% compression on naturally compact traces |
+| Performance-correlation benchmark (synthetic validation, n=60) | 19 metrics, 12 significant after BH-FDR |
+| Strongest effect (synthetic) | verify_density rho = -0.858, 95% CI [-0.881, -0.807] |
+| Test suite | 322 tests passing (CI matrix: Python 3.10/3.11/3.12) |
 
-逐项能力对比矩阵见 [docs/comparison.md](docs/comparison.md)。
+## Documentation
 
-## 统一实验入口
+- [docs/api.md](docs/api.md) — public API reference and module layout
+- [docs/comparison.md](docs/comparison.md) — capability matrix vs. LLM-MindMap / CRV / CoT2Graph
+- [docs/failure_modes.md](docs/failure_modes.md) — NGS failure-mode taxonomy
+- [experiments/notebooks/end_to_end.ipynb](experiments/notebooks/end_to_end.ipynb) — end-to-end walkthrough
+- [CHANGELOG.md](CHANGELOG.md) — version history (Keep a Changelog)
 
-```bash
-python -m experiments.run extract   --dataset gsm8k --max-traces 50
-python -m experiments.run analyze   --dataset gsm8k
-python -m experiments.run prune     --dataset synthetic --n 50
-python -m experiments.run calibrate --synthetic
-python -m experiments.run annotate
-python -m experiments.run correlation --synthetic           # 19 指标性能相关性基准
-python -m experiments.run all       --dataset gsm8k
-```
-
-每次运行写入 `experiments/results/runs/<command>_<timestamp>/`，附 `manifest.json`
-（git commit、Python 版本、参数、UTC 时间戳）保证可复现。
-
-## 文档
-
-- [docs/api.md](docs/api.md) — 公共 API 参考与模块布局
-- [docs/comparison.md](docs/comparison.md) — 与 LLM-MindMap / CRV / CoT2Graph 的能力矩阵
-- [docs/failure_modes.md](docs/failure_modes.md) — NGS 失败模式分类法
-- [experiments/notebooks/end_to_end.ipynb](experiments/notebooks/end_to_end.ipynb) — 端到端可运行教程
-- [CHANGELOG.md](CHANGELOG.md) — 版本历史（Keep a Changelog）
-
-## 测试
+## Tests
 
 ```bash
-python -m pytest tests/ -q        # 312 tests
+python -m pytest tests/ -q
 ```
 
-## 引用
+## Citation
 
 ```bibtex
 @software{rtsa2026,
@@ -134,7 +143,7 @@ python -m pytest tests/ -q        # 312 tests
 }
 ```
 
-## 贡献与许可
+## Contributing & License
 
-- 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)
-- 许可证：[MIT](LICENSE)
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+- License: [MIT](LICENSE)
