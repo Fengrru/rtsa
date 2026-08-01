@@ -116,3 +116,19 @@ def test_batch_identify():
     assert len(results) == 3
     for r in results:
         assert r.predicted_model == "batch-model"
+
+
+def test_update_with_no_new_graphs_keeps_signature():
+    """update() with empty data must keep the old signature and never
+    produce NaN statistics."""
+    graphs = [_make_graph(n_nodes=i + 3, trace_id=f"g{i}") for i in range(5)]
+    fp = ModelFingerprint()
+    sig = fp.enroll("model", graphs)
+
+    updated = fp.update("model", [])
+
+    assert updated is sig  # unchanged signature object returned
+    assert updated.n_samples == 5
+    assert not np.any(np.isnan(updated.feature_mean))
+    assert not np.any(np.isnan(updated.feature_cov))
+    assert not np.any(np.isnan(updated.feature_std))

@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from core.types import GraphNode, NodeType, ReasoningTraceGraph
+
 
 # ---------------------------------------------------------------------------
 # CoT Trace I/O
@@ -128,7 +130,6 @@ def stratified_sample(
 
 def load_extracted_graphs(filepath: str) -> List:
     """Load extracted RTGs from JSONL."""
-    from core.types import ReasoningTraceGraph
     graphs = []
     with open(filepath, "r", encoding="utf-8") as f:
         for line in f:
@@ -147,10 +148,10 @@ def load_extracted_graphs(filepath: str) -> List:
                     extractor=data.get("extractor", ""),
                     metadata=data.get("metadata", {}),
                     nodes=[
-                        __import__("rtsa.core.types", fromlist=["GraphNode"]).GraphNode(
+                        GraphNode(
                             id=n["id"],
-                            type=__import__("rtsa.core.types", fromlist=["NodeType"]).NodeType.from_string(n["type"]),
-                            span=tuple(n.get("span", [0, 0])),
+                            type=NodeType.from_string(n["type"]),
+                            span=tuple(n["span"]) if n.get("span") is not None else (0, 0),
                         )
                         for n in nodes_data
                     ],
@@ -165,8 +166,8 @@ def save_extracted_graphs(graphs: List, filepath: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         for g in graphs:
-            if hasattr(g, "model_dump_json_schema"):
-                f.write(json.dumps(g.model_dump_json_schema(), ensure_ascii=False) + "\n")
+            if hasattr(g, "to_canonical_dict"):
+                f.write(json.dumps(g.to_canonical_dict(), ensure_ascii=False) + "\n")
             elif hasattr(g, "model_dump_json"):
                 f.write(g.model_dump_json(exclude_none=True) + "\n")
             else:

@@ -8,6 +8,7 @@ Falls back gracefully if spaCy is not available.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -317,18 +318,57 @@ class SyntaxBasedExtractor:
         from .gcp_validator import _split_multi_op_sentence
         return _split_multi_op_sentence(sentence)
 
-    def extract(self, cot_text: str, trace_id: str = "", **metadata) -> ReasoningTraceGraph:
+    @staticmethod
+    def _merge_with_segments(
+        types: List[NodeType],
+        segments: List[str],
+    ) -> Tuple[List[NodeType], List[List[str]]]:
+        """Merge consecutive Transform / Verify / Backtrack nodes while tracking
+        which source segments each merged node covers.
+
+        Preserves Transforms that belong to different conditional branches
+        ("otherwise" / "else" / "case N" / "if") and collapses repeated
+        Verify / Backtrack signals (NGS R4 / multi-backtrack), exactly like
+        ``_merge_consecutive_transforms_smart`` + ``_merge_same_type`` but
+        without losing segment-to-node alignment.
+        """
+        if not types:
+            return [], []
+        merged_types: List[NodeType] = []
+        merged_segments: List[List[str]] = []
+        for i, t in enumerate(types):
+            seg = segments[i] if i < len(segments) else ""
+            if merged_types:
+                last_t = merged_types[-1]
+                seg_lower = seg.lstrip().lower()
+                same_transform = (
+                    t == NodeType.TRANSFORM and last_t == NodeType.TRANSFORM
+                )
+                keep_transform = same_transform and seg_lower.startswith(
+                    ("otherwise", "else", "case ", "if ", "when ", "whether ")
+                )
+                same_mergeable = (
+                    t == last_t and t in (NodeType.VERIFY, NodeType.BACKTRACK)
+                )
+                if (same_transform and not keep_transform) or same_mergeable:
+                    merged_segments[-1].append(seg)
+                    continue
+            merged_types.append(t)
+            merged_segments.append([seg])
+        return merged_types, merged_segments
+
+    def extract(
+        self, cot_text: str, trace_id: str = "",
+        model: str = "", question_id: str = "", domain: str = "",
+        **metadata,
+    ) -> ReasoningTraceGraph:
         """
         Extract a ReasoningTraceGraph using syntax-based classification.
         Splits complex sentences into multiple operations, applies
         context-aware post-processing (branch refinement, transform merging).
         """
         from .rule_based import RuleBasedExtractor
-        from .gcp_validator import (
-            _merge_consecutive_transforms_smart,
-            _refine_branch_context,
-            _merge_same_type,
-        )
+        from .gcp_validator import _refine_branch_context
 
         # Use RBE's sentence splitting
         rbe = RuleBasedExtractor()
@@ -340,6 +380,7 @@ class SyntaxBasedExtractor:
                 extractor=self.name,
                 nodes=[],
                 edges=[],
+                model=model, question_id=question_id, domain=domain,
                 metadata=metadata,
             )
 
@@ -352,24 +393,32 @@ class SyntaxBasedExtractor:
         # Classify each segment
         raw_types = [self.classify_sentence(s) for s in all_segments]
 
-        # Post-processing (from GCP adapter logic)
+        # Context-aware branch refinement (types stay 1:1 with segments here)
         raw_types = _refine_branch_context(raw_types, all_segments)
-        raw_types = _merge_consecutive_transforms_smart(raw_types, all_segments)
-        merged_types = _merge_same_type(raw_types)
+
+        # Merge consecutive Transforms / Verify / Backtrack, keeping the
+        # segment mapping so text and spans never shift out of alignment.
+        merged_types, merged_segments = self._merge_with_segments(
+            raw_types, all_segments
+        )
 
         # Build nodes with improved span tracking
         nodes = []
         char_offset = 0
         for i, mtype in enumerate(merged_types):
-            if i < len(all_segments):
-                sent = all_segments[i]
-                start = cot_text.find(sent, char_offset) if char_offset < len(cot_text) else char_offset
-                end = start + len(sent) if start >= 0 else char_offset + len(sent)
-                char_offset = max(0, end)
-            else:
-                sent = ""
-                start, end = 0, 0
-            nodes.append(GraphNode(id=i + 1, type=mtype, span=(max(0, start), max(0, end)), text=sent))
+            sents = merged_segments[i]
+            text = " ".join(sents)
+            first = sents[0]
+            last = sents[-1]
+            start = cot_text.find(first, char_offset)
+            if start < 0:
+                start = char_offset
+            last_start = cot_text.find(last, start)
+            end = (last_start + len(last)) if last_start >= 0 else start + len(text)
+            char_offset = max(0, end)
+            nodes.append(GraphNode(
+                id=i + 1, type=mtype, span=(max(0, start), max(0, end)), text=text,
+            ))
 
         # Build sequential edges
         edges = [(nodes[i].id, nodes[i + 1].id) for i in range(len(nodes) - 1)]
@@ -384,8 +433,9 @@ class SyntaxBasedExtractor:
                         edges.append(edge)
 
         return ReasoningTraceGraph(
-            trace_id=trace_id or f"sbe_{hash(cot_text) % 100000}",
+            trace_id=trace_id or f"sbe_{hashlib.md5(cot_text.encode('utf-8')).hexdigest()[:12]}",
             extractor=self.name,
+            model=model, question_id=question_id, domain=domain,
             nodes=nodes,
             edges=edges,
             metadata={

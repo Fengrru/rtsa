@@ -4,7 +4,8 @@ import pytest
 from core.types import GraphNode, NodeType, ReasoningTraceGraph
 from core.ngs_validator import (
     NGSValidator, NGSRule, NGSViolation,
-    NGSRobustnessTester,
+    NGSRobustnessTester, classify_failure_mode,
+    FAILURE_MODE_TAXONOMY,
 )
 
 
@@ -163,3 +164,67 @@ class TestNGSRobustness:
     def test_invalid_variant_raises(self):
         with pytest.raises(ValueError):
             NGSRobustnessTester.build_validator_for_variant("nonexistent")
+
+    def test_variant_relaxation_actually_applies(self):
+        """Variant configs must be wired into validation: strict rejects
+        consecutive Transforms while relaxed allows them."""
+        nodes = [
+            GraphNode(id=1, type=NodeType.TRANSFORM),
+            GraphNode(id=2, type=NodeType.TRANSFORM),
+        ]
+        g = _make_graph(nodes=nodes, edges=[(1, 2)])
+
+        strict_v = NGSRobustnessTester.build_validator_for_variant("strict")
+        relaxed_v = NGSRobustnessTester.build_validator_for_variant("relaxed")
+
+        valid_strict, _ = strict_v.validate(g)
+        valid_relaxed, _ = relaxed_v.validate(g)
+
+        assert not valid_strict
+        assert valid_relaxed
+
+    def test_ultra_relaxed_allows_empty_graph(self):
+        """min_nodes_per_graph=0 must skip the R6 compliance check so the
+        empty graph is no longer rejected."""
+        g = _make_graph()
+        ultra_v = NGSRobustnessTester.build_validator_for_variant("ultra_relaxed")
+        valid, violations = ultra_v.validate(g)
+        assert valid
+        assert not any(v.rule == NGSRule.NGS_COMPLIANCE for v in violations)
+
+
+class TestFailureModes:
+    """B6: failure-mode taxonomy classification."""
+
+    def test_taxonomy_has_all_modes(self):
+        assert len(FAILURE_MODE_TAXONOMY) == 7
+        assert "fragmented_step" in FAILURE_MODE_TAXONOMY
+        assert "dependency_violation" in FAILURE_MODE_TAXONOMY
+        assert "empty_graph" in FAILURE_MODE_TAXONOMY
+
+    def test_classify_groups_every_violation(self):
+        nodes = [
+            GraphNode(id=1, type=NodeType.TRANSFORM),
+            GraphNode(id=2, type=NodeType.TRANSFORM),
+        ]
+        g = _make_graph(nodes=nodes, edges=[(1, 2)])
+        _, violations = NGSValidator().validate(g)
+        grouped = classify_failure_mode(violations)
+        total = sum(len(v) for v in grouped.values())
+        assert total == len(violations)
+        for v in violations:
+            assert v.failure_mode  # every violation carries a mode
+
+    def test_no_violations_empty_groups(self):
+        g = _make_graph(nodes=[GraphNode(id=1, type=NodeType.RETRIEVE)])
+        _, violations = NGSValidator().validate(g)
+        assert classify_failure_mode(violations) == {}
+
+    def test_violation_records_failure_mode(self):
+        nodes = [
+            GraphNode(id=1, type=NodeType.TRANSFORM),
+            GraphNode(id=2, type=NodeType.TRANSFORM),
+        ]
+        g = _make_graph(nodes=nodes, edges=[(1, 2)])
+        _, violations = NGSValidator().validate(g)
+        assert violations[0].failure_mode in FAILURE_MODE_TAXONOMY

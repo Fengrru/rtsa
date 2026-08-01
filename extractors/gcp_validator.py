@@ -321,9 +321,13 @@ def make_gcp_adapter(
 
         # (a) "Verify that X" → an implicit Transform (the subject of
         #     verification) precedes the Verify operation.
+        #     Note: insert the same text into ``segments`` so that
+        #     ``types`` and ``segments`` stay aligned for the downstream
+        #     context-aware refinement / smart merge passes.
         for i, (seg, t) in enumerate(zip(segments, list(types))):
             if t == NodeType.VERIFY and _re.search(r'\b[Vv]erify\s+that\b', seg):
                 types.insert(i, NodeType.TRANSFORM)
+                segments.insert(i, seg)
                 break
 
         # (b) "reconsider" (e.g. "Let me reconsider") → an implicit
@@ -331,6 +335,7 @@ def make_gcp_adapter(
         for i, (seg, t) in enumerate(zip(segments, list(types))):
             if t == NodeType.TRANSFORM and "reconsider" in seg.lower():
                 types.insert(i, NodeType.RETRIEVE)
+                segments.insert(i, seg)
                 break
 
         # Context-aware refinement: fix context-dependent Branch misclassifications

@@ -13,8 +13,8 @@ you save by pruning them.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass, field, replace
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -58,6 +58,20 @@ class PruneConfig:
     # Pruning execution threshold
     min_confidence_threshold: float = 0.50  # only prune regions with confidence >= this
 
+    # Domain-specific threshold overrides, keyed by ``graph.domain``, e.g.
+    # {"math": {"verify_density_high": 0.45, "max_consecutive_transforms": 4}}.
+    # Structural error signatures are domain-dependent (CRV, arXiv 2510.09312),
+    # so long-verbose domains may need laxer thresholds than terse ones.
+    domain_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+    def resolve_for_domain(self, domain: str) -> "PruneConfig":
+        """Return a copy with this domain's overrides applied (self if none)."""
+        overrides = self.domain_overrides.get(domain, {})
+        if not overrides:
+            return self
+        valid = {k: v for k, v in overrides.items() if hasattr(self, k)}
+        return replace(self, **valid)
+
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -86,13 +100,26 @@ class PruningReport:
     total_estimated_savings: int = 0
     structural_integrity_score: float = 1.0    # post-prune DAG validity
 
+    def savings_range(self, uncertainty: float = 0.40) -> Tuple[int, int]:
+        """Heuristic error band around the estimated token savings.
+
+        Token estimates are rough (``avg_tokens_per_node``), so the report
+        surfaces an uncertainty interval instead of a false-precision point
+        estimate. Default +/-40% covers the heuristic nature of the estimator.
+        """
+        lo = int(self.total_estimated_savings * (1.0 - uncertainty))
+        hi = int(self.total_estimated_savings * (1.0 + uncertainty))
+        return lo, hi
+
     def summary(self) -> str:
+        lo, hi = self.savings_range()
         lines = [
             f"PruningReport for {self.trace_id}",
             f"  Nodes: {self.original_n_nodes} → "
             f"{len(self.pruned_graph.nodes) if self.pruned_graph else 'N/A'}",
             f"  Redundancy regions: {len(self.redundancy_regions)}",
-            f"  Est. token savings: {self.total_estimated_savings}",
+            f"  Est. token savings: {self.total_estimated_savings} "
+            f"(range {lo}-{hi})",
             f"  Integrity score: {self.structural_integrity_score:.2f}",
         ]
         for r in self.redundancy_regions:
@@ -136,9 +163,10 @@ class RedundancyAnalyzer:
             graph: input reasoning trace graph
             apply_pruning: if True, produce a pruned copy of the graph
 
-        Returns:
-            PruningReport with diagnostics and (optionally) pruned graph
+        Per-domain threshold overrides (``PruneConfig.domain_overrides``)
+        are resolved from ``graph.domain`` on every call.
         """
+        self.config = self.config.resolve_for_domain(graph.domain)
         features = compute_graph_features(graph)
         regions: List[RedundancyRegion] = []
 
@@ -153,7 +181,12 @@ class RedundancyAnalyzer:
         if self.config.use_calibration_signal or self.config.use_prm_signal:
             regions = self._fuse_signal_scores(graph, regions)
 
-        total_savings = sum(r.estimated_token_savings for r in regions)
+        # Only regions that are actually prunable (delete/merge) contribute
+        # to the estimated savings; "review" regions are advisory only.
+        total_savings = sum(
+            r.estimated_token_savings for r in regions
+            if r.suggested_action in ("delete", "merge")
+        )
 
         pruned = None
         integrity = 1.0
@@ -214,10 +247,13 @@ class RedundancyAnalyzer:
                     suggested_action="merge" if len(block) > 1 else "review",
                 ))
 
-        # Rule B: late-stage verify concentration
-        late_cutoff = int(n * 0.70)
-        late_verify_ids = [vid for vid in verify_ids
-                           if any(n.id == vid and n.id >= late_cutoff for n in nodes_sorted)]
+        # Rule B: late-stage verify concentration (position-based, NOT id-based)
+        late_cutoff_idx = int(n * 0.70)
+        late_verify_ids = [
+            node.id
+            for i, node in enumerate(nodes_sorted)
+            if node.type == NodeType.VERIFY and i >= late_cutoff_idx
+        ]
         if late_verify_ids and len(late_verify_ids) / max(len(verify_ids), 1) > cfg.verify_late_stage_ratio:
             conf = 0.75
             regions.append(RedundancyRegion(
@@ -353,21 +389,71 @@ class RedundancyAnalyzer:
         """
         # Collect nodes to delete (respect confidence threshold)
         to_delete: Set[int] = set()
+        merge_texts: Dict[int, List[str]] = {}  # kept node id -> absorbed texts
+        node_text_map = {n.id: n.text for n in graph.nodes}
         for r in regions:
             if r.confidence < self.config.min_confidence_threshold:
                 continue
             if r.suggested_action == "delete":
                 to_delete.update(r.node_ids)
-            elif r.suggested_action == "merge" and len(r.node_ids) > 1:
-                to_delete.update(r.node_ids[1:])
+            elif r.suggested_action == "merge":
+                if r.region_type == "redundant_transform_chain":
+                    # node_ids are the *excess* nodes only — the chain anchor
+                    # lives outside this region, so all of them are redundant.
+                    to_delete.update(r.node_ids)
+                elif len(r.node_ids) > 1:
+                    # Merge region: keep the first node, absorb the rest's text
+                    keep = r.node_ids[0]
+                    for extra in r.node_ids[1:]:
+                        to_delete.add(extra)
+                        txt = node_text_map.get(extra)
+                        if txt:
+                            merge_texts.setdefault(keep, []).append(txt)
 
         if not to_delete:
             return graph, 1.0
 
-        # Initial keep set after direct deletions
-        kept_nodes = [n for n in graph.nodes if n.id not in to_delete]
+        # Initial keep set after direct deletions (absorbing merged text)
+        kept_nodes = []
+        for n in graph.nodes:
+            if n.id in to_delete:
+                continue
+            if n.id in merge_texts:
+                extra = " ".join(merge_texts[n.id])
+                kept_nodes.append(n.model_copy(update={"text": (n.text + " " + extra).strip()}))
+            else:
+                kept_nodes.append(n)
         kept_ids = {n.id for n in kept_nodes}
         pruned_edges = [e for e in graph.edges if e[0] in kept_ids and e[1] in kept_ids]
+
+        # Reroute around deleted blocks: connect each kept predecessor to
+        # every kept successor whose path consists only of deleted nodes.
+        # Without this, a merge anchor can become unreachable when another
+        # region deletes its in-between chain — and would then be removed
+        # as an "orphan", defeating the merge (e.g. a Transform chain
+        # collapsed right before the Verify block that kept its anchor).
+        existing = {(u, v) for u, v in pruned_edges}
+        del_edges = [
+            (u, v) for u, v in graph.edges if u in to_delete and v in to_delete
+        ]
+        for p in kept_ids:
+            for d in [v for u, v in graph.edges if u == p and v in to_delete]:
+                stack = [d]
+                seen: Set[int] = set()
+                while stack:
+                    cur = stack.pop()
+                    if cur in seen:
+                        continue
+                    seen.add(cur)
+                    for s in [
+                        v for u, v in graph.edges
+                        if u == cur and v in kept_ids
+                    ]:
+                        if p != s and (p, s) not in existing:
+                            pruned_edges.append((p, s))
+                            existing.add((p, s))
+                    for nxt in [v for u, v in del_edges if u == cur]:
+                        stack.append(nxt)
 
         # Clean up orphan nodes (no path from root)
         root_id = graph.nodes[0].id if graph.nodes else 0
@@ -496,15 +582,27 @@ class RedundancyAnalyzer:
         return regions
 
     def _max_depth_from(
-        self, graph: ReasoningTraceGraph, start_id: int, visited: Set[int]
+        self, graph: ReasoningTraceGraph, start_id: int, visited: Optional[Set[int]] = None
     ) -> int:
+        """Longest path depth from *start_id*.
+
+        ``visited`` tracks the current DFS *path* (nodes are removed on
+        backtrack) so sibling branches do not block each other — a shared
+        global visited set would systematically underestimate depth in
+        multi-branch graphs.
+        """
+        if visited is None:
+            visited = set()
         if start_id in visited:
             return 0
         visited.add(start_id)
         children = [e[1] for e in graph.edges if e[0] == start_id]
-        if not children:
-            return 1
-        return 1 + max((self._max_depth_from(graph, c, visited) for c in children), default=0)
+        depth = 1 + max(
+            (self._max_depth_from(graph, c, visited) for c in children),
+            default=0,
+        )
+        visited.discard(start_id)
+        return depth
 
     @staticmethod
     def _compute_integrity(

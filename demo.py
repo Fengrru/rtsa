@@ -96,4 +96,4 @@ for label, g in [("Verify-only", g1), ("Backtrack", g2)]:
 print("\n" + "=" * 60)
 print("JSON EXPORT (first graph)")
 print("=" * 60)
-print(json.dumps(g1.model_dump_json_schema(), indent=2))
+print(json.dumps(g1.to_canonical_dict(), indent=2))

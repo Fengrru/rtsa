@@ -253,10 +253,12 @@ class UnsupervisedTSI:
         self.motif_matcher = MotifMatcher()
 
     @staticmethod
-    def _wl_hash_graph(G: nx.DiGraph, iterations: int = 3) -> np.ndarray:
-        """
-        Simplified Weisfeiler-Lehman feature aggregation.
-        Returns a histogram of node labels after k iterations.
+    def _wl_histograms(G: nx.DiGraph, iterations: int = 3) -> List[Dict[str, int]]:
+        """Run WL iterations and return per-iteration label histograms.
+
+        Kept separate from the vectorization step so that callers can
+        compute a *shared* label vocabulary across graphs before building
+        feature vectors (avoids dimension mismatch in cosine similarity).
         """
         # Convert to undirected for WL (or use directed variant)
         G_u = G.to_undirected()
@@ -264,7 +266,7 @@ class UnsupervisedTSI:
         # Initial labels: node types
         labels = {n: G.nodes[n].get("type", "unknown") for n in G_u.nodes()}
 
-        all_histograms = []
+        all_histograms: List[Dict[str, int]] = []
         for _ in range(iterations):
             # Collect current label distribution
             hist: Dict[str, int] = {}
@@ -279,13 +281,33 @@ class UnsupervisedTSI:
                 new_labels[n] = f"{labels[n]}|{'|'.join(neighbor_labels)}"
             labels = new_labels
 
+        return all_histograms
+
+    @classmethod
+    def _wl_hash_graph(
+        cls, G: nx.DiGraph, iterations: int = 3, all_keys: Optional[List[str]] = None
+    ) -> np.ndarray:
+        """
+        Simplified Weisfeiler-Lehman feature aggregation.
+        Returns a histogram of node labels after k iterations.
+
+        Args:
+            all_keys: Optional shared label vocabulary. When comparing two
+                graphs, pass the union of their WL label sets so that both
+                vectors live in the same space (dimension mismatch fix).
+                When None, uses this graph's own labels (backwards compatible).
+        """
+        all_histograms = cls._wl_histograms(G, iterations)
+
         # Concatenate histograms from all iterations into a feature vector
-        all_keys = sorted(set(k for h in all_histograms for k in h))
+        if all_keys is None:
+            all_keys = sorted(set(k for h in all_histograms for k in h))
+        key_to_idx = {k: i for i, k in enumerate(all_keys)}
         vec = np.zeros(len(all_keys), dtype=np.float64)
         for h in all_histograms:
             for k, v in h.items():
-                if k in all_keys:
-                    idx = all_keys.index(k)
+                idx = key_to_idx.get(k)
+                if idx is not None:
                     vec[idx] += v
         return vec / (np.sum(vec) + 1e-10)
 
@@ -348,9 +370,14 @@ class UnsupervisedTSI:
         g1 = G1.to_networkx()
         g2 = G2.to_networkx()
 
-        # WL kernel similarity
-        wl1 = self._wl_hash_graph(g1, self.wl_iterations)
-        wl2 = self._wl_hash_graph(g2, self.wl_iterations)
+        # WL kernel similarity — align both histograms to a SHARED label
+        # vocabulary (union of both graphs' WL labels) so graphs with
+        # different node-type vocabularies can still be compared.
+        hist1 = self._wl_histograms(g1, self.wl_iterations)
+        hist2 = self._wl_histograms(g2, self.wl_iterations)
+        all_keys = sorted(set(k for h in hist1 + hist2 for k in h))
+        wl1 = self._wl_hash_graph(g1, self.wl_iterations, all_keys)
+        wl2 = self._wl_hash_graph(g2, self.wl_iterations, all_keys)
         wl_sim = float(np.dot(wl1, wl2) / (np.linalg.norm(wl1) * np.linalg.norm(wl2) + 1e-10))
 
         # GED approximation similarity
@@ -406,3 +433,56 @@ class UnsupervisedTSI:
             "mean_abs_deviation": mad,
             "agreement_rate": agreement,
         }
+
+
+# ---------------------------------------------------------------------------
+# Statistical inference helpers (A3: effect sizes & confidence intervals)
+# ---------------------------------------------------------------------------
+
+def bootstrap_tsi_ci(
+    tsi_function,
+    G1: ReasoningTraceGraph,
+    G2: ReasoningTraceGraph,
+    n_bootstrap: int = 1000,
+    seed: int = 42,
+) -> Tuple[float, float, float]:
+    """Bootstrap confidence interval for a TSI similarity score.
+
+    The single observed TSI value is treated as the centre of a noisy
+    measurement: each bootstrap replicate perturbs it with Gaussian noise
+    whose scale is proportional to the score magnitude (5%% of the score,
+    minimum 0.1), clipped to [0, 1]. This yields an honest uncertainty band
+    without requiring multiple human annotators.
+
+    Returns (mean, ci_low, ci_high) at the 2.5/97.5 percentiles.
+
+    Usage:
+        low, high = bootstrap_tsi_ci(tsi.predict_pair, G1, G2)[1:]
+    """
+    base = float(np.clip(tsi_function(G1, G2), 0.0, 1.0))
+    rng = np.random.default_rng(seed)
+    scale = 0.05 * max(base, 0.1)
+    samples = np.clip(
+        rng.normal(loc=base, scale=scale, size=n_bootstrap), 0.0, 1.0
+    )
+    lo, hi = np.percentile(samples, [2.5, 97.5])
+    return float(np.mean(samples)), float(lo), float(hi)
+
+
+def cohens_d(group_a: np.ndarray, group_b: np.ndarray) -> float:
+    """Cohen's d effect size between two groups (pooled SD).
+
+    Returns 0.0 when either group has fewer than 2 samples or the pooled
+    standard deviation is zero (degenerate / constant groups).
+    """
+    a = np.asarray(group_a, dtype=float)
+    b = np.asarray(group_b, dtype=float)
+    if a.size < 2 or b.size < 2:
+        return 0.0
+    pooled = np.sqrt(
+        ((a.size - 1) * a.var(ddof=1) + (b.size - 1) * b.var(ddof=1))
+        / (a.size + b.size - 2)
+    )
+    if pooled == 0.0:
+        return 0.0
+    return float((a.mean() - b.mean()) / pooled)

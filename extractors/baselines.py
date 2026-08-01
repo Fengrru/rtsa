@@ -21,8 +21,9 @@ class JPDirectedPreservingRandomizer:
     """JP-DPR: preserves original edge jump-distance distribution."""
 
     def __init__(self, seed: int = 42):
-        random.seed(seed)
-        np.random.seed(seed)
+        # Use a private Random instance so repeated construction with the
+        # same seed is reproducible WITHOUT mutating the global random state.
+        self._rng = random.Random(seed)
 
     def randomize(self, graph: ReasoningTraceGraph, k: int = 100) -> List[ReasoningTraceGraph]:
         G = graph.to_networkx()
@@ -36,9 +37,12 @@ class JPDirectedPreservingRandomizer:
 
         for _ in range(k):
             shuffled = topo.copy()
-            random.shuffle(shuffled)
+            self._rng.shuffle(shuffled)
             idx_new = {node: i for i, node in enumerate(shuffled)}
-            Gr = nx.DiGraph()
+            # MultiDiGraph so that two original edges which pick the same
+            # target stay distinct — otherwise the edge count silently
+            # shrinks and the null distribution is biased.
+            Gr = nx.MultiDiGraph()
             Gr.add_nodes_from(G.nodes(data=True))
             for (u, v), target_d in edge_jumps.items():
                 iu = idx_new[u]
@@ -46,12 +50,30 @@ class JPDirectedPreservingRandomizer:
                 if not candidates:
                     candidates = [n for n in shuffled[iu + 1:] if abs(idx_new[n] - iu - target_d) <= 2]
                 if not candidates:
-                    sd = random.choices(jdk, weights=jdw)[0]
+                    sd = self._rng.choices(jdk, weights=jdw)[0]
                     candidates = [n for n in shuffled[iu + 1:] if idx_new[n] - iu == sd]
                 if not candidates:
                     candidates = shuffled[iu + 1:]
-                if candidates:
-                    Gr.add_edge(u, random.choice(candidates))
+                if not candidates:
+                    # ``u`` sits at (or near) the end of the shuffled order,
+                    # so no forward nodes exist. Without this fallback the
+                    # edge would be silently dropped.
+                    candidates = [n for n in shuffled if n != u]
+                # Adding (u, n) creates a cycle iff n can already reach u.
+                # The end-of-order fallback may pick nodes that come *before*
+                # u in the shuffled order; those backward edges break the
+                # forward-only invariant the earlier tiers rely on, so every
+                # candidate set (not just the fallback) must be cycle-checked.
+                safe = [n for n in candidates if not nx.has_path(Gr, n, u)]
+                if not safe and len(candidates) < len(shuffled) - 1:
+                    # Every forward candidate already leads back into u
+                    # (earlier fallback edges can route into it), yet a
+                    # cycle-free target may still exist elsewhere — retry
+                    # over every node except u before dropping the edge.
+                    candidates = [n for n in shuffled if n != u]
+                    safe = [n for n in candidates if not nx.has_path(Gr, n, u)]
+                if safe:
+                    Gr.add_edge(u, self._rng.choice(safe))
             random_graphs.append(self._to_rtg(Gr, graph, f"{graph.trace_id}_dpr_{_}"))
         return random_graphs
 
@@ -64,7 +86,8 @@ class JPDirectedPreservingRandomizer:
             ntype = NodeType.from_string(ntype_str)
             nodes.append(GraphNode(id=i + 1, type=ntype))
         old_to_new = {old: new.id for old, new in zip(topo, nodes)}
-        edges = [(old_to_new[u], old_to_new[v]) for u, v in G.edges()]
+        # DiGraph edges are (u, v); MultiDiGraph edges are (u, v, key).
+        edges = [(old_to_new[e[0]], old_to_new[e[1]]) for e in G.edges()]
         return ReasoningTraceGraph(
             trace_id=tid, model=ref.model, question_id=ref.question_id,
             domain=ref.domain, extractor=f"{ref.extractor}_jp_dpr",
@@ -79,7 +102,7 @@ class EdgeRewiringBaseline:
     def __init__(self, seed: int = 42, n_swaps: int = 10):
         self.seed = seed
         self.n_swaps = n_swaps
-        random.seed(seed)
+        self._rng = random.Random(seed)
 
     def randomize(self, graph: ReasoningTraceGraph, k: int = 100) -> List[ReasoningTraceGraph]:
         G_orig = graph.to_networkx()
@@ -90,7 +113,7 @@ class EdgeRewiringBaseline:
             for _ in range(min(self.n_swaps, len(edges) // 2)):
                 if len(edges) < 2:
                     break
-                e1, e2 = random.sample(edges, 2)
+                e1, e2 = self._rng.sample(edges, 2)
                 a, b = e1
                 c, d = e2
                 if a != d and c != b and not G.has_edge(a, d) and not G.has_edge(c, b):
@@ -115,7 +138,8 @@ class EdgeRewiringBaseline:
             ntype = NodeType.from_string(ntype_str)
             nodes.append(GraphNode(id=i + 1, type=ntype))
         old_to_new = {old: new.id for old, new in zip(topo, nodes)}
-        edges = [(old_to_new[u], old_to_new[v]) for u, v in G.edges()]
+        # DiGraph edges are (u, v); MultiDiGraph edges are (u, v, key).
+        edges = [(old_to_new[e[0]], old_to_new[e[1]]) for e in G.edges()]
         return ReasoningTraceGraph(
             trace_id=tid, model=ref.model, question_id=ref.question_id,
             domain=ref.domain, extractor=f"{ref.extractor}_rw",
@@ -128,7 +152,7 @@ class PermutationBaseline:
     """Shuffles node types while preserving graph topology."""
 
     def __init__(self, seed: int = 42):
-        random.seed(seed)
+        self._rng = random.Random(seed)
 
     def randomize(self, graph: ReasoningTraceGraph, k: int = 100) -> List[ReasoningTraceGraph]:
         import copy
@@ -137,7 +161,7 @@ class PermutationBaseline:
             permuted = copy.deepcopy(graph)
             permuted.trace_id = f"{graph.trace_id}_perm_{_}"
             types = [n.type for n in permuted.nodes]
-            random.shuffle(types)
+            self._rng.shuffle(types)
             for node, new_type in zip(permuted.nodes, types):
                 node.type = new_type
             permuted.metadata["is_randomized"] = True

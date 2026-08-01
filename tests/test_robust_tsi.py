@@ -5,7 +5,7 @@ import numpy as np
 from core.types import GraphNode, NodeType, ReasoningTraceGraph
 from core.robust_tsi import (
     extract_level1_features, extract_level1_features_batch,
-    RobustTSI, UnsupervisedTSI,
+    RobustTSI, UnsupervisedTSI, bootstrap_tsi_ci, cohens_d,
 )
 
 
@@ -133,12 +133,23 @@ class TestUnsupervisedTSI:
 
     def test_pairwise_similarity_matrix(self):
         usi = UnsupervisedTSI()
-        # Use graphs with same node type vocabulary to avoid WL dimension mismatch
         a = _make_graph_a()
         b = _make_graph_b()
         mat = usi.pairwise_similarity_matrix([a, b])
         assert mat.shape == (2, 2)
         assert np.allclose(np.diag(mat), 1.0)
+
+    def test_cross_vocabulary_no_dimension_mismatch(self):
+        """Graphs with disjoint node-type vocabularies must not crash
+        (WL histograms are aligned on the union vocabulary)."""
+        usi = UnsupervisedTSI()
+        g1 = _make_graph_a()  # vocab: Retrieve, Transform, Verify
+        g2 = _make_graph_c()  # vocab: Branch, Transform
+        sim = usi.similarity(g1, g2)
+        assert 0.0 <= sim <= 1.0
+        mat = usi.pairwise_similarity_matrix([g1, g2])
+        assert mat.shape == (2, 2)
+        assert not np.any(np.isnan(mat))
 
     def test_compare_with_supervised(self):
         usi = UnsupervisedTSI()
@@ -176,3 +187,50 @@ class TestUnsupervisedTSI:
         g = _make_graph_a()
         ged_sim = usi._graph_edit_distance_approx(g.to_networkx(), g.to_networkx())
         assert ged_sim > 0.9
+
+
+class TestStatsHelpers:
+    """A3: bootstrap confidence intervals and Cohen's d effect size."""
+
+    def test_bootstrap_ci_bounds_and_order(self):
+        g1 = _make_graph_a()
+        g2 = _make_graph_b()
+        mean, lo, hi = bootstrap_tsi_ci(
+            UnsupervisedTSI().similarity, g1, g2, n_bootstrap=200,
+        )
+        assert 0.0 <= lo <= mean <= hi <= 1.0
+
+    def test_bootstrap_ci_deterministic_seed(self):
+        g1 = _make_graph_a()
+        g2 = _make_graph_b()
+        r1 = bootstrap_tsi_ci(
+            UnsupervisedTSI().similarity, g1, g2, n_bootstrap=100, seed=7,
+        )
+        r2 = bootstrap_tsi_ci(
+            UnsupervisedTSI().similarity, g1, g2, n_bootstrap=100, seed=7,
+        )
+        assert r1 == r2
+
+    def test_bootstrap_ci_identical_graphs_narrow(self):
+        """Identical graphs give sim=1.0; the CI must stay at the top."""
+        g = _make_graph_a()
+        mean, lo, hi = bootstrap_tsi_ci(
+            UnsupervisedTSI().similarity, g, g, n_bootstrap=200,
+        )
+        assert 0.95 <= mean <= 1.0
+        assert hi == 1.0  # clipped mass at the ceiling
+
+    def test_cohens_d_sign_and_magnitude(self):
+        a = np.array([1.0, 2.0, 3.0, 4.0])
+        b = np.array([10.0, 11.0, 12.0, 13.0])
+        d = cohens_d(a, b)
+        assert d < 0          # group_a below group_b
+        assert abs(d) > 3.0   # clearly separated groups
+
+    def test_cohens_d_identical_groups_zero(self):
+        a = np.array([5.0, 5.0, 5.0])
+        b = np.array([5.0, 5.0, 5.0])
+        assert cohens_d(a, b) == 0.0  # pooled SD = 0
+
+    def test_cohens_d_small_sample_zero(self):
+        assert cohens_d(np.array([1.0]), np.array([2.0, 3.0])) == 0.0

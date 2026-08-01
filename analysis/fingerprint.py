@@ -135,15 +135,50 @@ class ModelFingerprint:
         model_name: str,
         graphs: List[ReasoningTraceGraph],
     ) -> ModelSignature:
-        """Incrementally update an existing signature with new graphs."""
+        """Incrementally update an existing signature with new graphs.
+
+        The old signature is reconstructed as pseudo-samples drawn from its
+        stored mean/cov, combined with the new feature matrix, and the
+        statistics are recomputed directly from the combined matrix.
+        """
         if model_name not in self.signatures:
             return self.enroll(model_name, graphs)
 
         old = self.signatures[model_name]
         X_new = self._compute_combined_features(graphs)
-        X_all = np.vstack([np.random.multivariate_normal(old.feature_mean, old.feature_cov, old.n_samples), X_new])
-        # Recompute from combined pseudo-data
-        return self.enroll(model_name, [], min_samples=0)
+        n_old = old.n_samples
+        n_new = X_new.shape[0]
+
+        if n_old > 0 and n_new > 0:
+            # Reconstruct pseudo-samples from the old signature
+            cov_reg = old.feature_cov + np.eye(len(old.feature_mean)) * 1e-6
+            X_old = np.random.multivariate_normal(
+                old.feature_mean, cov_reg, n_old
+            )
+            X_all = np.vstack([X_old, X_new])
+        elif n_new > 0:
+            X_all = X_new
+        else:
+            # No new data: keep the existing signature unchanged
+            return old
+
+        sig = ModelSignature(
+            model_name=model_name,
+            n_samples=n_old + n_new,
+            feature_mean=np.mean(X_all, axis=0),
+            feature_cov=(
+                np.cov(X_all, rowvar=False)
+                if X_all.shape[0] > 1
+                else np.eye(X_all.shape[1]) * 1e-4
+            ),
+            feature_std=np.std(X_all, axis=0, ddof=1) + 1e-8,
+        )
+        self.signatures[model_name] = sig
+        logger.info(
+            f"Updated signature for '{model_name}': "
+            f"{n_old} -> {sig.n_samples} samples"
+        )
+        return sig
 
     # ------------------------------------------------------------------
     # Identification

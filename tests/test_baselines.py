@@ -10,6 +10,7 @@ from extractors.baselines import (
     compute_tsi_threshold,
     compute_stable_rate,
 )
+from extractors.random_baseline import RandomBaselineExtractor, ShuffledTypeExtractor
 
 
 def _make_chain():
@@ -69,6 +70,27 @@ class TestJPDirectedPreservingRandomizer:
             types = sorted(n.type for n in rg.nodes)
             expected_types = sorted(n.type for n in g.nodes)
             assert types == expected_types
+
+    def test_no_edge_lost_when_source_at_permutation_end(self):
+        """JP-DPR must never silently drop edges: when a source lands at the
+        end of the shuffled order the cycle-safe fallback re-attaches it."""
+        dpr = JPDirectedPreservingRandomizer(seed=7)
+        g = _make_complex()
+        graphs = dpr.randomize(g, k=50)
+        for rg in graphs:
+            assert len(rg.edges) == len(g.edges)
+            assert rg.validate_dag()
+
+    def test_no_global_random_seed_side_effect(self):
+        """Constructing seeded baselines must not mutate the global random state."""
+        import random as _random
+        state = _random.getstate()
+        JPDirectedPreservingRandomizer(seed=1)
+        EdgeRewiringBaseline(seed=2)
+        PermutationBaseline(seed=3)
+        RandomBaselineExtractor(seed=4)
+        ShuffledTypeExtractor(seed=5)
+        assert _random.getstate() == state
 
 
 class TestEdgeRewiringBaseline:

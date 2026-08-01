@@ -55,7 +55,7 @@ def extract(cot_file: str, extractor: str, output: Optional[str], model: str):
 
     click.echo(f"Extracting with {extractor}...")
     graph = ext.extract(cot_text)
-    result = json.dumps(graph.model_dump_json_schema(), indent=2, ensure_ascii=False)
+    result = json.dumps(graph.to_canonical_dict(), indent=2, ensure_ascii=False)
 
     if output:
         Path(output).write_text(result, encoding="utf-8")
@@ -247,7 +247,7 @@ def prune(graph_file: str, apply: bool, output: Optional[str], report: Optional[
         click.echo(f"Structural integrity: {result.structural_integrity_score:.2f}")
 
         if output:
-            pruned_data = json.loads(result.pruned_graph.model_dump_json_schema())
+            pruned_data = result.pruned_graph.to_canonical_dict()
             Path(output).write_text(
                 json.dumps(pruned_data, indent=2, ensure_ascii=False),
                 encoding="utf-8",
@@ -397,8 +397,23 @@ def benchmark(extractors: str, data: str, output: Optional[str],
         graphs[name] = graph_list
         click.echo(f"Loaded {len(graph_list)} graphs for '{name}'")
 
-    # Dummy extractor mapping (benchmark uses pre-extracted graphs for NGS/TSI)
-    extractor_map = {name: lambda t, n=name: t for name in extractor_names}
+    # Build real extractor callables so the benchmark can also run GCP
+    # when enabled (each callable is an extractor ``extract`` bound method).
+    extractor_map = {}
+    for name in extractor_names:
+        if name == "rbe":
+            from extractors.rule_based import RuleBasedExtractor
+            extractor_map[name] = RuleBasedExtractor().extract
+        elif name == "sbe":
+            from extractors.syntax_based import SyntaxBasedExtractor
+            extractor_map[name] = SyntaxBasedExtractor().extract
+        elif name == "rbe_rand":
+            from extractors.random_baseline import RandomBaselineExtractor
+            extractor_map[name] = RandomBaselineExtractor().extract
+        else:
+            # Unknown name (e.g. "deepseek"): keep an identity stub;
+            # NGS/TSI consume the pre-extracted graphs, not this callable.
+            extractor_map[name] = lambda t, n=name: t
 
     bench = ExtractorBenchmark()
     report = bench.run(

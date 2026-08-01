@@ -158,7 +158,7 @@ class ReasoningTraceGraph(BaseModel):
             errors.append("Graph has no nodes")
         return len(errors) == 0, errors
 
-    def model_dump_json_schema(self) -> Dict[str, Any]:
+    def to_canonical_dict(self) -> Dict[str, Any]:
         """Export in the standard JSON Schema format (Section 4.1)."""
         return {
             "trace_id": self.trace_id,
@@ -175,11 +175,11 @@ class ReasoningTraceGraph(BaseModel):
 
     def to_json(self, indent: int = 2) -> str:
         """Serialize to canonical JSON string."""
-        return json.dumps(self.model_dump_json_schema(), ensure_ascii=False, indent=indent)
+        return json.dumps(self.to_canonical_dict(), ensure_ascii=False, indent=indent)
 
     def to_jsonl_line(self) -> str:
         """Serialize as a single JSONL line."""
-        return json.dumps(self.model_dump_json_schema(), ensure_ascii=False)
+        return json.dumps(self.to_canonical_dict(), ensure_ascii=False)
 
     @classmethod
     def from_json(cls, data: Union[str, Dict[str, Any]]) -> "ReasoningTraceGraph":
@@ -191,7 +191,7 @@ class ReasoningTraceGraph(BaseModel):
             GraphNode(
                 id=int(n["id"]),
                 type=NodeType.from_string(n["type"]),
-                span=tuple(n.get("span", [0, 0])),
+                span=tuple(n["span"]) if n.get("span") is not None else (0, 0),
             )
             for n in gd.get("nodes", [])
         ]
@@ -306,6 +306,12 @@ MOTIF_CATALOG: List[MotifEntry] = [
         edge_list=[(0, 1), (0, 2), (1, 3), (2, 3)],
     ),
     MotifEntry(
+        motif_id="M4", pattern_name="Loop(3)",
+        description="A -> B -> C -> A (detected but rejected for DAGs)",
+        size=3, node_types=[NodeType.RETRIEVE, NodeType.TRANSFORM, NodeType.BACKTRACK],
+        edge_list=[(0, 1), (1, 2), (2, 0)],
+    ),
+    MotifEntry(
         motif_id="M5", pattern_name="Verify-After-Transform",
         description="Transform -> Verify",
         size=2, node_types=[NodeType.TRANSFORM, NodeType.VERIFY],
@@ -371,7 +377,7 @@ CANONICAL_JSON_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "required": ["trace_id", "model", "question_id", "domain", "extractor", "metadata", "graph"],
     "properties": {
-        "trace_id": {"type": "string", "format": "uuid"},
+        "trace_id": {"type": "string"},
         "model": {"type": "string", "minLength": 1},
         "question_id": {"type": "string", "minLength": 1},
         "domain": {"type": "string", "enum": ["math", "code", "logic"]},

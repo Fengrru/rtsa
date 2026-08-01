@@ -574,7 +574,8 @@ class MotifCatalog:
             self.register(m)
 
     def get_preset_ids(self) -> List[str]:
-        return [f"M{i}" for i in range(1, 9)]
+        """All preset motif IDs (M1-M12), matching PRESET_MOTIFS."""
+        return sorted(self.motifs.keys(), key=lambda x: int(x[1:]) if x[1:].isdigit() else 999)
 
     def get_all_ids(self) -> List[str]:
         return sorted(self.motifs.keys(), key=lambda x: int(x[1:]) if x[1:].isdigit() else 999)

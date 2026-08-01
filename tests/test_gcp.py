@@ -5,7 +5,7 @@ import numpy as np
 from core.types import NodeType
 from extractors.gcp_validator import (
     GCPValidator, compute_gcs, GCSSentence,
-    GCS_CORPUS_FULL, GCPResult,
+    GCS_CORPUS_FULL, GCPResult, make_gcp_adapter,
 )
 from extractors.rule_based import RuleBasedExtractor
 
@@ -127,3 +127,32 @@ class TestGCPValidator:
         result = validator.calibrate_extractor(failing_extractor, "fail")
         assert result.mean_gcs == 0.0
         assert "GCS-001" in result.failure_details[0] if result.failure_details else True
+
+
+class TestMakeGcpAdapter:
+    """Regression: implicit Transform insertion must keep ``segments`` aligned
+    with ``types`` so branch-aware merging still works."""
+
+    def test_verify_that_inserts_implicit_transform(self):
+        rbe = RuleBasedExtractor()
+        adapter = make_gcp_adapter(rbe.classify_sentence)
+        types = adapter("Verify that the derivative of x squared is 2x.")
+        assert types[0] == NodeType.TRANSFORM  # implicit Transform precedes Verify
+        assert types[-1] == NodeType.VERIFY
+
+    def test_otherwise_branches_preserved_after_insert(self):
+        """After an implicit-Transform insert, an 'otherwise' Transform must
+        NOT be collapsed with the previous Transform (GCS-003 semantics).
+        Before the fix the segment list drifted and the smart merge fell
+        back to merging ALL consecutive Transforms, losing the branch."""
+        rbe = RuleBasedExtractor()
+        adapter = make_gcp_adapter(rbe.classify_sentence)
+        types = adapter("Verify that x equals 2; otherwise compute y; otherwise compute z")
+        assert types == [NodeType.TRANSFORM, NodeType.VERIFY, NodeType.TRANSFORM, NodeType.TRANSFORM]
+
+    def test_gcs003_branch_sequence(self):
+        """GCS-003 gold [Branch, Transform, Transform] is preserved end-to-end."""
+        rbe = RuleBasedExtractor()
+        adapter = make_gcp_adapter(rbe.classify_sentence)
+        types = adapter("If x > 0, then y = x + 1; otherwise y = x - 1.")
+        assert types == [NodeType.BRANCH, NodeType.TRANSFORM, NodeType.TRANSFORM]

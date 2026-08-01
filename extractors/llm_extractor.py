@@ -12,6 +12,7 @@ E7: DeepSeek Extractor (Medium independence — different training mix)
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
@@ -257,7 +258,7 @@ class LLMExtractor:
                     raise ValueError("No nodes extracted from LLM response")
 
                 return ReasoningTraceGraph(
-                    trace_id=trace_id or f"{self.name}_{hash(cot_text) % 100000}",
+                    trace_id=trace_id or f"{self.name}_{hashlib.md5(cot_text.encode('utf-8')).hexdigest()[:12]}",
                     model=self.client.model,
                     extractor=self.name,
                     domain=domain,
@@ -282,7 +283,7 @@ class LLMExtractor:
         # All retries exhausted
         logger.error(f"LLM extraction failed after {self.max_retries} attempts")
         return ReasoningTraceGraph(
-            trace_id=trace_id or f"{self.name}_failed_{hash(cot_text) % 100000}",
+            trace_id=trace_id or f"{self.name}_failed_{hashlib.md5(cot_text.encode('utf-8')).hexdigest()[:12]}",
             extractor=self.name,
             nodes=[],
             edges=[],

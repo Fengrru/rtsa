@@ -243,7 +243,10 @@ class ExtractorBenchmark:
             return
 
         # Build per-extractor graph lists (must be same-length for fair comparison)
-        min_len = min(len(graphs[n]) for n in names if n in graphs)
+        lens = [len(graphs[n]) for n in names if n in graphs]
+        if not lens:
+            return
+        min_len = min(lens)
         if min_len == 0:
             return
 

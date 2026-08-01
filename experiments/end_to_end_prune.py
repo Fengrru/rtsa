@@ -135,6 +135,8 @@ def _load_dataset(dataset: str, n: int) -> List[Dict[str, Any]]:
     if dataset == "gsm8k":
         path = _PROJECT_ROOT / "data" / "raw_cots" / "gsm8k_50.jsonl"
         traces = load_saved_traces(str(path))
+        for t in traces:
+            t["dataset_source"] = "gsm8k"
         return traces[:n]
 
     if dataset == "mixed":

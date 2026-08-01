@@ -6,12 +6,15 @@ and correlates structure with answer correctness.
 """
 
 import sys
-sys.path.insert(0, r"C:\Users\fengrru\Desktop\rtsa")  # for direct imports
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))  # for direct imports
 
 import json
 import time
 import logging
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np

@@ -38,11 +38,45 @@ class NGSRule(str, Enum):
 
 @dataclass
 class NGSViolation:
-    """A single NGS rule violation with diagnostic context."""
+    """A single NGS rule violation with diagnostic context.
+
+    ``failure_mode`` maps the violation onto the failure-mode taxonomy
+    shared with ``docs/failure_modes.md`` (CoT2Graph-style Type I/II
+    categories), so downstream tooling can group and act on violations
+    by mode rather than by rule id.
+    """
     rule: NGSRule
     node_indices: List[int]
     message: str
     severity: str = "error"
+    failure_mode: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Failure-mode taxonomy (NGS rules -> actionable failure categories)
+# ---------------------------------------------------------------------------
+# Type I  = structural inefficiency (overthinking / wasted steps)
+# Type II = graph dependency violation (broken causal structure)
+
+FAILURE_MODE_TAXONOMY: Dict[str, str] = {
+    "fragmented_step": "Type I: a single atomic operation was split into trivially small nodes",
+    "overloaded_step": "Type I: one node packs multiple operations that should be separate steps",
+    "merged_computation": "Type I: consecutive Transforms represent one continuous calculation",
+    "overloaded_retrieve": "Type I: one Retrieve references multiple distinct sources",
+    "pseudo_branch": "Type I: a Branch node that never actually forks into >= 2 paths",
+    "dependency_violation": "Type II: a step has no incoming/outgoing causal link to the rest of the graph",
+    "empty_graph": "Type II: the trace produced zero nodes — nothing to analyze",
+}
+
+
+def classify_failure_mode(
+    violations: List[NGSViolation],
+) -> Dict[str, List[NGSViolation]]:
+    """Group violations by failure mode (empty-string mode falls under 'other')."""
+    grouped: Dict[str, List[NGSViolation]] = {}
+    for v in violations:
+        grouped.setdefault(v.failure_mode or "other", []).append(v)
+    return grouped
 
 
 # ---------------------------------------------------------------------------
@@ -50,10 +84,31 @@ class NGSViolation:
 # ---------------------------------------------------------------------------
 
 class NGSValidator:
-    """Validates extracted ReasoningTraceGraphs against the six NGS iron rules."""
+    """Validates extracted ReasoningTraceGraphs against the six NGS iron rules.
 
-    def __init__(self, strict: bool = True):
+    The ``strict`` flag and the per-rule ``allow_*`` / ``require_*`` options
+    control how the variant-sensitive rules (R2/R4/R5/R6) are enforced:
+    - ``strict=True``: violations of R2/R4/R5 are hard errors.
+    - ``strict=False``: the same violations degrade to warnings.
+    - ``allow_consecutive_transform``: R2 is skipped entirely.
+    - ``allow_orphan_verify``: R4 is skipped entirely.
+    - ``require_branch_fork``: R5 is skipped entirely when False.
+    - ``min_nodes_per_graph``: empty graphs are rejected when >= 1.
+    """
+
+    def __init__(
+        self,
+        strict: bool = True,
+        allow_consecutive_transform: bool = False,
+        allow_orphan_verify: bool = False,
+        require_branch_fork: bool = True,
+        min_nodes_per_graph: int = 1,
+    ):
         self.strict = strict
+        self.allow_consecutive_transform = allow_consecutive_transform
+        self.allow_orphan_verify = allow_orphan_verify
+        self.require_branch_fork = require_branch_fork
+        self.min_nodes_per_graph = min_nodes_per_graph
 
     # ------------------------------------------------------------------
     # Individual rule checks
@@ -80,6 +135,7 @@ class NGSValidator:
                     message=f"Node {node.id} ({node.type.value}): text too short ({text_len} chars) "
                             f"for an atomic operation: '{node.text}' (NGS R1)",
                     severity="warning",
+                    failure_mode="fragmented_step",
                 ))
             if text_len > 200 and node.type in (NodeType.TRANSFORM, NodeType.BRANCH):
                 # Suspiciously long sentence for a single operation
@@ -89,14 +145,23 @@ class NGSValidator:
                     message=f"Node {node.id} ({node.type.value}): text very long ({text_len} chars) "
                             f"may contain multiple operations: '{node.text[:80]}...' (NGS R1)",
                     severity="warning",
+                    failure_mode="overloaded_step",
                 ))
         return violations
 
     @staticmethod
-    def check_no_consecutive_repeat(graph: ReasoningTraceGraph) -> List[NGSViolation]:
-        """R2: No consecutive Transform nodes representing one calculation."""
+    def check_no_consecutive_repeat(
+        graph: ReasoningTraceGraph, strict: Optional[bool] = None
+    ) -> List[NGSViolation]:
+        """R2: No consecutive Transform nodes representing one calculation.
+
+        Args:
+            strict: None (default, when called directly) or True -> "error"
+                severity; False -> "warning" severity.
+        """
         violations = []
         nodes_sorted = sorted(graph.nodes, key=lambda n: n.id)
+        severity = "error" if strict is not False else "warning"
         for i in range(len(nodes_sorted) - 1):
             current = nodes_sorted[i]
             next_node = nodes_sorted[i + 1]
@@ -108,7 +173,8 @@ class NGSValidator:
                         node_indices=[current.id, next_node.id],
                         message=f"Consecutive Transform nodes {current.id}->{next_node.id} "
                                 f"may represent one continuous calculation (NGS R2)",
-                        severity="error",
+                        severity=severity,
+                        failure_mode="merged_computation",
                     ))
         return violations
 
@@ -140,13 +206,22 @@ class NGSValidator:
                     message=f"Retrieve node {node.id}: contains {ref_count} references "
                             f"({node.text[:60]}...) should be split into {ref_count} nodes (NGS R3)",
                     severity="warning",
+                    failure_mode="overloaded_retrieve",
                 ))
         return violations
 
     @staticmethod
-    def check_verify_scope(graph: ReasoningTraceGraph) -> List[NGSViolation]:
-        """R4: A Verify node verifies one or more prior steps."""
+    def check_verify_scope(
+        graph: ReasoningTraceGraph, strict: Optional[bool] = None
+    ) -> List[NGSViolation]:
+        """R4: A Verify node verifies one or more prior steps.
+
+        Args:
+            strict: None (default, when called directly) -> "warning";
+                True -> "error" severity; False -> "warning" severity.
+        """
         violations = []
+        severity = "error" if strict is True else "warning"
         for node in graph.nodes:
             if node.type == NodeType.VERIFY:
                 incoming = [e for e in graph.edges if e[1] == node.id]
@@ -155,14 +230,23 @@ class NGSValidator:
                         rule=NGSRule.VERIFY_SCOPE,
                         node_indices=[node.id],
                         message=f"Verify node {node.id} has no incoming edges (verifies nothing)",
-                        severity="warning",
+                        severity=severity,
+                        failure_mode="dependency_violation",
                     ))
         return violations
 
     @staticmethod
-    def check_branch_encoding(graph: ReasoningTraceGraph) -> List[NGSViolation]:
-        """R5: A conditional split is ONE Branch node with multiple outgoing edges."""
+    def check_branch_encoding(
+        graph: ReasoningTraceGraph, strict: Optional[bool] = None
+    ) -> List[NGSViolation]:
+        """R5: A conditional split is ONE Branch node with multiple outgoing edges.
+
+        Args:
+            strict: None (default, when called directly) -> "warning";
+                True -> "error" severity; False -> "warning" severity.
+        """
         violations = []
+        severity = "error" if strict is True else "warning"
         for node in graph.nodes:
             if node.type == NodeType.BRANCH:
                 outgoing = [e for e in graph.edges if e[0] == node.id]
@@ -172,7 +256,8 @@ class NGSValidator:
                         node_indices=[node.id],
                         message=f"Branch node {node.id} has only {len(outgoing)} "
                                 f"outgoing edge(s); Branch should fork to >= 2 paths",
-                        severity="warning",
+                        severity=severity,
+                        failure_mode="pseudo_branch",
                     ))
         return violations
 
@@ -198,6 +283,7 @@ class NGSValidator:
                 node_indices=[],
                 message="Graph has zero nodes — cannot be NGS-compliant for motif analysis (NGS R6)",
                 severity="error",
+                failure_mode="empty_graph",
             ))
             return violations
 
@@ -212,6 +298,7 @@ class NGSValidator:
                     message=f"Node {node.id} ({node.type.value}) has no incoming edges "
                             f"(orphan operation) (NGS R6)",
                     severity="warning",
+                    failure_mode="dependency_violation",
                 ))
 
         return violations
@@ -228,10 +315,24 @@ class NGSValidator:
         """
         all_violations: List[NGSViolation] = []
         all_violations.extend(self.check_atomicity(graph))
-        all_violations.extend(self.check_no_consecutive_repeat(graph))
+
+        if not self.allow_consecutive_transform:
+            all_violations.extend(
+                self.check_no_consecutive_repeat(graph, strict=self.strict)
+            )
+        if not self.allow_orphan_verify:
+            all_violations.extend(
+                self.check_verify_scope(graph, strict=self.strict)
+            )
+        if self.require_branch_fork:
+            all_violations.extend(
+                self.check_branch_encoding(graph, strict=self.strict)
+            )
         all_violations.extend(self.check_reference_atomicity(graph))
-        all_violations.extend(self.check_verify_scope(graph))
-        all_violations.extend(self.check_branch_encoding(graph))
+
+        # R6: NGS compliance meta-rule (orphan detection etc.)
+        if self.min_nodes_per_graph > 0:
+            all_violations.extend(self.check_ngs_compliance(graph))
 
         errors = [v for v in all_violations if v.severity == "error"]
         is_valid = len(errors) == 0
@@ -481,7 +582,14 @@ class NGSRobustnessTester:
     def build_validator_for_variant(variant_name: str) -> NGSValidator:
         if variant_name not in NGSRobustnessTester.VARIANTS:
             raise ValueError(f"Unknown variant: {variant_name}")
-        return NGSValidator(strict=(variant_name == "strict"))
+        cfg = NGSRobustnessTester.VARIANTS[variant_name]
+        return NGSValidator(
+            strict=(variant_name == "strict"),
+            allow_consecutive_transform=cfg["allow_consecutive_transform"],
+            allow_orphan_verify=cfg["allow_orphan_verify"],
+            require_branch_fork=cfg["require_branch_fork"],
+            min_nodes_per_graph=cfg["min_nodes_per_graph"],
+        )
 
     def run_robustness_check(
         self, graphs: List[ReasoningTraceGraph],

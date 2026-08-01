@@ -83,7 +83,7 @@ class TestMotifMatcher:
         matcher = MotifMatcher()
         g = _make_chain_graph()
         results = matcher.match_all_presets(g)
-        assert len(results) == 11  # 11 preset motifs (M1-M12)
+        assert len(results) == 12  # 12 preset motifs (M1-M12, incl. M4 Loop)
         assert results["M1"].count >= 1
 
     def test_motif_frequencies(self):
@@ -96,14 +96,14 @@ class TestMotifMatcher:
     def test_motif_frequency_vector(self):
         matcher = MotifMatcher()
         vec = matcher.compute_motif_frequency_vector(_make_chain_graph())
-        assert vec.shape == (11,)  # M1-M12 (no M4)
+        assert vec.shape == (12,)  # M1-M12 (incl. M4 Loop)
         assert vec[0] >= 0  # M1 count (first in sorted order)
 
     def test_motif_frequency_matrix(self):
         matcher = MotifMatcher()
         graphs = [_make_chain_graph(), _make_fork_graph(), _make_diamond_graph()]
         mat = matcher.compute_motif_frequency_matrix(graphs)
-        assert mat.shape == (3, 11)  # M1-M12 (no M4)
+        assert mat.shape == (3, 12)  # M1-M12 (incl. M4 Loop)
 
     def test_discover_motifs_exhaustive(self):
         matcher = MotifMatcher()
@@ -128,5 +128,5 @@ class TestMotifMatcher:
         g = ReasoningTraceGraph(trace_id="none", nodes=nodes, edges=[])
         matcher = MotifMatcher()
         vec = matcher.compute_motif_frequency_vector(g)
-        assert vec.shape == (11,)  # M1-M12 (no M4)
+        assert vec.shape == (12,)  # M1-M12 (incl. M4 Loop)
         assert np.sum(vec) == 0  # no matches for 1-node graph

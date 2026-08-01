@@ -32,7 +32,7 @@ class RandomBaselineExtractor:
     def __init__(self, name: str = "rbe_rand", seed: int = 42):
         self.name = name
         self.seed = seed
-        random.seed(seed)
+        self._rng = random.Random(seed)
 
     @staticmethod
     def classify_by_length(sentence: str) -> NodeType:
@@ -75,7 +75,7 @@ class RandomBaselineExtractor:
         edges = [(nodes[i].id, nodes[i + 1].id) for i in range(len(nodes) - 1)]
 
         return ReasoningTraceGraph(
-            trace_id=trace_id or f"rberand_{hash(cot_text) % 100000}",
+            trace_id=trace_id or f"rberand_{hashlib.md5(cot_text.encode('utf-8')).hexdigest()[:12]}",
             extractor=self.name,
             nodes=nodes,
             edges=edges,
@@ -97,7 +97,7 @@ class ShuffledTypeExtractor:
 
     def __init__(self, name: str = "shuffled_type", seed: int = 42):
         self.name = name
-        random.seed(seed)
+        self._rng = random.Random(seed)
 
     def extract(
         self, reference_graph: ReasoningTraceGraph, trace_id: str = ""
@@ -114,7 +114,7 @@ class ShuffledTypeExtractor:
 
         # Collect types and shuffle
         types = [n.type for n in shuffled.nodes]
-        random.shuffle(types)
+        self._rng.shuffle(types)
         for node, new_type in zip(shuffled.nodes, types):
             node.type = new_type
 

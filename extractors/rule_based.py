@@ -12,6 +12,7 @@ Merged from v3.1 + v3.2:
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -330,35 +331,48 @@ class RuleBasedExtractor:
     # ------------------------------------------------------------------
 
     def extract(
-        self, cot_text: str, trace_id: str = "", **metadata,
+        self, cot_text: str, trace_id: str = "",
+        model: str = "", question_id: str = "", domain: str = "",
+        **metadata,
     ) -> ReasoningTraceGraph:
         """Extract a ReasoningTraceGraph from CoT text."""
         sentences = self._split_sentences(cot_text)
         if not sentences:
             return ReasoningTraceGraph(
                 trace_id=trace_id or "empty", extractor=self.name,
-                nodes=[], edges=[], metadata=metadata,
+                nodes=[], edges=[], model=model, question_id=question_id,
+                domain=domain, metadata=metadata,
             )
 
         raw_types = [self.classify_sentence(s) for s in sentences]
-        merged_types = self._merge_consecutive_transforms(raw_types)
+
+        # Merge consecutive Transforms while keeping track of which sentences
+        # each merged node covers, so text/span stay aligned with the source.
+        merged_pairs: List[Tuple[NodeType, List[str]]] = []
+        for t, sent in zip(raw_types, sentences):
+            if (t == NodeType.TRANSFORM and merged_pairs
+                    and merged_pairs[-1][0] == NodeType.TRANSFORM):
+                merged_pairs[-1][1].append(sent)
+            else:
+                merged_pairs.append((t, [sent]))
 
         # Build nodes with spans
         nodes = []
         char_offset = 0
-        for i, mtype in enumerate(merged_types):
-            # Find sentence span
-            if i < len(sentences):
-                sent = sentences[i]
-                start = cot_text.find(sent, char_offset) if char_offset < len(cot_text) else char_offset
-                end = start + len(sent) if start >= 0 else char_offset + len(sent)
-                char_offset = max(0, end)
-            else:
-                start, end = 0, 0
+        for i, (mtype, sents) in enumerate(merged_pairs):
+            text = " ".join(sents)
+            first = sents[0]
+            last = sents[-1]
+            start = cot_text.find(first, char_offset)
+            if start < 0:
+                start = char_offset
+            last_start = cot_text.find(last, start)
+            end = (last_start + len(last)) if last_start >= 0 else start + len(text)
+            char_offset = max(0, end)
             nodes.append(GraphNode(
                 id=i + 1, type=mtype,
                 span=(max(0, start), max(0, end)),
-                text=sent,
+                text=text,
             ))
 
         # Build edges: sequential chain + Branch forward edges
@@ -372,8 +386,9 @@ class RuleBasedExtractor:
                         edges.append(edge)
 
         return ReasoningTraceGraph(
-            trace_id=trace_id or f"rbe_{hash(cot_text) % 100000}",
-            extractor=self.name, nodes=nodes, edges=edges,
+            trace_id=trace_id or f"rbe_{hashlib.md5(cot_text.encode('utf-8')).hexdigest()[:12]}",
+            extractor=self.name, model=model, question_id=question_id, domain=domain,
+            nodes=nodes, edges=edges,
             metadata={
                 "cot_length_tokens": len(cot_text.split()),
                 "extraction_rate": 1.0,

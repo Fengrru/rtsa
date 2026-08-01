@@ -124,9 +124,9 @@ class TestReasoningTraceGraph:
         valid, errors = g.is_valid()
         assert not valid
 
-    def test_model_dump_json_schema(self):
+    def test_to_canonical_dict(self):
         g = self._make_simple_graph()
-        d = g.model_dump_json_schema()
+        d = g.to_canonical_dict()
         assert d["trace_id"] == "test_1"
         assert "graph" in d
         assert len(d["graph"]["nodes"]) == 3
@@ -140,18 +140,39 @@ class TestReasoningTraceGraph:
         assert g.extractor == ""
         assert g.metadata == {}
 
+    def test_from_json_null_span(self):
+        """span: null in JSON must deserialize to (0, 0), not crash."""
+        data = {
+            "trace_id": "t1",
+            "graph": {
+                "nodes": [{"id": 1, "type": "Retrieve", "span": None}],
+                "edges": [],
+            },
+        }
+        g = ReasoningTraceGraph.from_json(data)
+        assert g.nodes[0].span == (0, 0)
+
+    def test_from_json_roundtrip(self):
+        g = self._make_simple_graph()
+        d = g.to_canonical_dict()
+        g2 = ReasoningTraceGraph.from_json(d)
+        assert g2.trace_id == g.trace_id
+        assert [n.type for n in g2.nodes] == [n.type for n in g.nodes]
+        assert g2.edges == g.edges
+
 
 class TestMotifCatalog:
-    def test_catalog_has_eleven_entries(self):
-        assert len(MOTIF_CATALOG) == 11  # M1-M12 (no M4)
+    def test_catalog_has_twelve_entries(self):
+        assert len(MOTIF_CATALOG) == 12  # M1-M12 (M4 = Loop, rejected for DAGs)
 
     def test_catalog_ids(self):
         ids = {m.motif_id for m in MOTIF_CATALOG}
-        assert ids == {"M1", "M2", "M3", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"}
+        assert ids == {"M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"}
 
     def test_motif_lookup(self):
         assert MOTIF_LOOKUP["M1"].pattern_name == "Chain(3)"
         assert MOTIF_LOOKUP["M3"].size == 4
+        assert MOTIF_LOOKUP["M4"].pattern_name == "Loop(3)"
         assert MOTIF_LOOKUP["M5"].discovery_method == "preset"
 
     def test_motif_entry_creation(self):
