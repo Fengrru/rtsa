@@ -12,7 +12,7 @@ Legend: yes / no / partial / n/a (not applicable to that work's goal)
 | CoT → graph extraction | yes (semantic clusters) | n/a (white-box compute graph) | yes (rule + LLM mix) | **yes** — 4 extractor families (RBE / SBE / LLM / random baseline) |
 | No white-box model access | yes | **no** (needs internal states) | yes | **yes** — purely textual input |
 | Graph-level structural metrics | exploration density, branching, convergence ratio | global statistics, node influence, topological paths | graph statistics | **yes** — 9 global metrics + motif frequencies + WL kernel + TSI |
-| Step-level structural features | no | yes (3-layer feature stack) | partial | **yes** — 21-dim vector per node (degrees, depth, type mix, NGS flags, position) |
+| Step-level structural features | no | yes (3-layer feature stack) | partial | **yes** — 17-dim vector per node (11 structural + 6 type one-hot) |
 | Step correctness prediction | no | yes (AUROC 70-92%) | path validity only | **yes** — `StepCorrectnessClassifier` (GradientBoosting, error probability per step) |
 | Redundancy detection & pruning | no | no | no | **yes** — region-level detection + DAG-preserving executable pruning |
 | Failure-mode taxonomy | no | binary error/ok | reasoning-path failure classes | **yes** — Type I (structural inefficiency) / Type II (dependency violation), 7 modes |
