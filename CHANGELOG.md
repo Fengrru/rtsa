@@ -13,12 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Step-level annotation pipeline**: `experiments/annotate_steps.py` produces deterministic per-node correctness labels from NGS violations, consumable by the step classifier.
 - **Step classifier and clustering**: `analysis/step_classifier.py` predicts per-step error probability from 17 structural features (11 structural + 6 type one-hot) without white-box access; `analysis/step_clustering.py` merges chain segments into macro-steps (LLM-MindMap-style).
 - **Statistical rigor helpers**: `bootstrap_tsi_ci` (bootstrap confidence interval for TSI scores) and `cohens_d` (effect size) in `core/robust_tsi.py`; `PruningReport.savings_range()` surfaces a +/-40% heuristic band instead of false precision.
+- **Performance-correlation benchmark**: `analysis/performance_correlation.py` measures 19 structural metrics across 3 families (global / type-mix / shape) against correctness or continuous performance scores, with Spearman rho, Benjamini-Hochberg FDR correction, optional bootstrap confidence intervals, and paper-ready Markdown output; wired into the unified entrypoint as `run correlation`.
 - **HuggingFace datasets adapter**: `utils/hf_adapter.py` supports any CoT dataset (gsm8k / math / plain parsers with auto-sniffing, custom mappers, streaming iteration, and export back to HF format).
-- **Unified experiment entrypoint**: `experiments/run.py` exposes `extract / analyze / prune / calibrate / annotate / all` behind one CLI, writing versioned run directories with `manifest.json` provenance (git commit, Python version, args, UTC timestamp).
+- **Unified experiment entrypoint**: `experiments/run.py` exposes `extract / analyze / prune / calibrate / annotate / correlation / all` behind one CLI, writing versioned run directories with `manifest.json` provenance (git commit, Python version, args, UTC timestamp).
 - **Observability**: `utils/trace_exporters.py` provides OTLP and Langfuse trace exporters behind a unified interface, degrading to a no-op exporter when dependencies are missing.
 - **GitHub Actions CI**: `.github/workflows/ci.yml` runs the full test suite on Python 3.10 / 3.11 / 3.12.
 - **Documentation**: rewritten `README.md` (pipeline diagram, research feature tables, related-work mapping, unified entrypoint); `docs/comparison.md` capability matrix; `docs/api.md` API reference; `experiments/notebooks/end_to_end.ipynb` runnable walkthrough; new `hf` / `obs` / `notebook` / `all` extras in `pyproject.toml`.
-- **Tests**: 57 new tests across 8 modules (failure modes, savings range, domain overrides, calibration, HF adapter, exporters, step clustering, step classifier, run CLI).
+- **Tests**: 67 new tests across 9 modules (failure modes, savings range, domain overrides, calibration, HF adapter, exporters, step clustering, step classifier, run CLI, performance correlation).
 
 ### Changed
 

@@ -17,7 +17,7 @@ features, and the unified experiment entrypoint.
 ```
 core/        graph types, metrics, similarity (TSI), motif matching, NGS validation
 extractors/  CoT -> ReasoningTraceGraph (rule-based, syntax-based, LLM, random baselines)
-analysis/    pruning, benchmarking, fingerprinting, step classifier, step clustering
+analysis/    pruning, benchmarking, performance-correlation, fingerprinting, step classifier, step clustering
 utils/       data loading (GSM8K / MATH / HuggingFace), trace exporters, visualization
 experiments/ reproducible experiments and the unified entrypoint (run.py)
 ```

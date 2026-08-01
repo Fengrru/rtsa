@@ -3,7 +3,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-green.svg)](https://github.com/Fengrru/rtsa/actions)
-[![tests: 312](https://img.shields.io/badge/tests-312%20passing-green.svg)](https://github.com/Fengrru/rtsa/actions)
+[![tests: 322](https://img.shields.io/badge/tests-322%20passing-green.svg)](https://github.com/Fengrru/rtsa/actions)
 
 **把大模型的思维链（Chain-of-Thought）当作结构化图来研究。**
 
@@ -49,7 +49,7 @@ rtsa prune graph.json --apply --output pruned.json
 |---|---|
 | 这条推理冗余吗？冗余在哪？ | 区域级冗余检测 + 可执行的 DAG 剪枝（`analysis/prune.py`） |
 | 这一步推理正确吗？ | 基于 17 维结构特征的黑盒步骤分类器（`analysis/step_classifier.py`，受 CRV 启发） |
-| 结构能预测正确性吗？ | 9 项图指标与正确率的 Spearman 相关实验（`experiments/correlation_analysis.py`） |
+| 结构能预测正确性吗？ | 19 项结构指标与正确性/性能分数的基准评测，FDR 校正 + bootstrap 置信区间（`analysis/performance_correlation.py`） |
 | 哪家模型写的？ | 基于结构风格的作者指纹（`rtsa fingerprint`） |
 | 两条推理有多像？ | 有监督 Robust-TSI + 无监督 WL-kernel 相似度 |
 
@@ -62,7 +62,8 @@ rtsa prune graph.json --apply --output pruned.json
 | 冗余剪枝 | `analysis/prune.py` | 4 种冗余检测器，DAG 完整性保持，支持 domain 自适应阈值 |
 | 步骤级分析 | `analysis/step_classifier.py` `step_clustering.py` | 17 维特征错误概率 + 语义宏步聚类（LLM-MindMap 式） |
 | 相似度与指纹 | `core/robust_tsi.py` `analysis/fingerprint.py` | 有监督 TSI / 无监督 WL-kernel / 作者识别 |
-| 统计严谨性 | `core/robust_tsi.py` | bootstrap 置信区间、Cohen's d 效应量、剪枝节省误差带 |
+| 统计严谨性 | `core/robust_tsi.py` `analysis/performance_correlation.py` | bootstrap 置信区间、Cohen's d 效应量、剪枝节省误差带、BH-FDR 多重比较校正 |
+| 性能相关性基准 | `analysis/performance_correlation.py` | 19 指标 × 3 家族（全局/类型构成/形状），Spearman + FDR + bootstrap rho CI，输出论文表格 |
 | 基准评测 | `analysis/benchmark.py` | GCP + NGS 通过率 + TSI + 计划冗余度 |
 | 数据集接入 | `utils/hf_adapter.py` | 任意 HuggingFace CoT 数据集（gsm8k / math / 自定义） |
 | 可观测性 | `utils/trace_exporters.py` | OTLP / Langfuse 导出，缺依赖自动降级 |
@@ -101,6 +102,7 @@ python -m experiments.run analyze   --dataset gsm8k
 python -m experiments.run prune     --dataset synthetic --n 50
 python -m experiments.run calibrate --synthetic
 python -m experiments.run annotate
+python -m experiments.run correlation --synthetic           # 19 指标性能相关性基准
 python -m experiments.run all       --dataset gsm8k
 ```
 

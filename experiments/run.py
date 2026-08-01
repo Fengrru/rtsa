@@ -290,6 +290,49 @@ def _run_annotate(args, run_dir: Path) -> int:
     return 0
 
 
+def _run_correlation(args, run_dir: Path) -> int:
+    """Performance-correlation benchmark (structure -> correctness/score)."""
+    from analysis.performance_correlation import (
+        run_performance_correlation,
+        synthetic_performance_graphs,
+    )
+    from experiments.correlation_analysis import load_labels
+
+    if args.synthetic:
+        graphs = synthetic_performance_graphs(n=args.n, seed=args.seed)
+        labels = {
+            g.trace_id: g.metadata.get("correct", True) for g in graphs
+        }
+        source = "synthetic"
+    else:
+        traces = load_traces_for(args, max_traces=args.max_traces)
+        graphs = extract_graphs(traces, args.max_traces)
+        labels = load_labels(args.labels_file)
+        labels = labels or {
+            t.get("question_id", f"t{i}"): t.get("answer_correct", True)
+            for i, t in enumerate(traces)
+        }
+        source = args.dataset
+
+    report = run_performance_correlation(
+        graphs, labels,
+        alpha=args.alpha,
+        n_bootstrap=args.n_bootstrap,
+        seed=args.seed,
+    )
+    print(report.summary())
+
+    (run_dir / "correlation.json").write_text(
+        json.dumps(report.to_dict(), indent=2), encoding="utf-8")
+    (run_dir / "correlation.md").write_text(
+        report.to_markdown(), encoding="utf-8")
+    print(f"Correlation benchmark ({source}) -> "
+          f"{run_dir / 'correlation.json'} + correlation.md")
+    write_manifest(run_dir, "correlation", vars(args),
+                   extra={"n_graphs": len(graphs), "source": source})
+    return 0
+
+
 def _run_all(args, run_dir: Path) -> int:
     """extract -> analyze -> prune in one shot."""
     tag = f"all_{args.dataset}"
@@ -361,6 +404,23 @@ def build_parser() -> argparse.ArgumentParser:
                    default="data/raw_cots/gsm8k_50.jsonl")
     p.add_argument("--max-traces", type=int, default=50)
 
+    p = sub.add_parser("correlation",
+                       help="performance-correlation benchmark (structure vs "
+                            "correctness)")
+    add_common(p)
+    p.add_argument("--dataset", choices=["gsm8k", "math"], default="gsm8k")
+    p.add_argument("--max-traces", type=int, default=50)
+    p.add_argument("--labels-file", type=str, default=None,
+                   help="JSONL {question_id, correct} per trace")
+    p.add_argument("--synthetic", action="store_true",
+                   help="validate on synthetic graphs with known signal")
+    p.add_argument("--n", type=int, default=60,
+                   help="synthetic graph count (--synthetic only)")
+    p.add_argument("--alpha", type=float, default=0.05,
+                   help="FDR significance level")
+    p.add_argument("--n-bootstrap", type=int, default=0,
+                   help=">0 to compute 95%% bootstrap CI on each rho")
+
     p = sub.add_parser("all", help="extract + analyze + prune in one run")
     add_common(p)
     p.add_argument("--dataset",
@@ -383,6 +443,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "prune": _run_prune,
         "calibrate": _run_calibrate,
         "annotate": _run_annotate,
+        "correlation": _run_correlation,
         "all": _run_all,
     }
     handler = handlers[args.command]

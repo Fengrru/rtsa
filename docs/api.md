@@ -50,6 +50,8 @@ CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **meta
 | `StepFeatureExtractor` | 17-dimensional per-step features (11 structural + 6 type one-hot) |
 | `StepCorrectnessClassifier` | GradientBoosting per-step error probability (`fit`, `predict_proba_error`, `save`, `load`) |
 | `StepClusterer` | LLM-MindMap-style merging of chain segments into macro-steps |
+| `run_performance_correlation` / `PerformanceCorrelationReport` | 19-metric benchmark (global / type-mix / shape families) of structure vs. correctness or continuous score; Spearman + BH-FDR + optional bootstrap rho CI; `to_markdown()` paper table |
+| `synthetic_performance_graphs` | Validation graphs with a known redundancy-driven score |
 | Fingerprint module | `ModelSignature`, `FingerprintMatchResult`; CLI `rtsa fingerprint enroll/identify` |
 
 ## Layer 4: Utilities (`utils/`)
@@ -66,7 +68,7 @@ CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **meta
 
 | Entry point | Purpose |
 |---|---|
-| `python -m experiments.run <cmd>` | Unified entrypoint: `extract`, `analyze`, `prune`, `calibrate`, `annotate`, `all`; versioned run dirs + `manifest.json` |
+| `python -m experiments.run <cmd>` | Unified entrypoint: `extract`, `analyze`, `prune`, `calibrate`, `annotate`, `correlation`, `all`; versioned run dirs + `manifest.json` |
 | `python -m experiments.calibrate_thresholds` | Coordinate-descent threshold calibration on annotated graphs |
 | `python -m experiments.annotate_steps` | Generate per-node NGS-violation labels for classifier training |
 | `python -m experiments.correlation_analysis` | Spearman structure-correctness correlation (synthetic or labeled data) |
