@@ -33,13 +33,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-[project.urls]
-Homepage = "https://github.com/Fengrru/rtsa"
-Repository = "https://github.com/Fengrru/rtsa"
-Issues = "https://github.com/Fengrru/rtsa/issues"
-Documentation = "https://github.com/Fengrru/rtsa#readme"
-Changelog = "https://github.com/Fengrru/rtsa/blob/main/CHANGELOG.md"
-
 dependencies = [
     "numpy>=1.24.0",
     "scipy>=1.11.0",
@@ -55,6 +48,13 @@ dependencies = [
     "pydantic>=2.0",
     "orjson>=3.9.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Fengrru/rtsa"
+Repository = "https://github.com/Fengrru/rtsa"
+Issues = "https://github.com/Fengrru/rtsa/issues"
+Documentation = "https://github.com/Fengrru/rtsa#readme"
+Changelog = "https://github.com/Fengrru/rtsa/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
