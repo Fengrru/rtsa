@@ -1,11 +1,11 @@
-# RTSA — Reasoning Trace Structure Analysis
+# RTSA
+
+**Reasoning Trace Structure Analysis** — study Chain-of-Thought reasoning as a structured graph; no white-box model access required.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-green.svg)](https://github.com/Fengrru/rtsa/actions)
 [![tests: 322](https://img.shields.io/badge/tests-322%20passing-green.svg)](https://github.com/Fengrru/rtsa/actions)
-
-**Study Chain-of-Thought reasoning as a structured graph — no white-box model access required.**
 
 [Documentation](docs/README.md) · [API Reference](docs/api.md) · [Comparison](docs/comparison.md) · [Changelog](CHANGELOG.md)
 
