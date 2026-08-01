@@ -8,7 +8,7 @@ Quick start:
     print(graph.nodes)
 """
 
-__version__ = "3.3.0"
+__version__ = "3.4.0"
 
 # Convenience re-exports when running from the project directory
 from core.types import ReasoningTraceGraph, GraphNode, NodeType, MotifEntry

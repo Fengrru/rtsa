@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-08-01
+
+### Added
+
+- **Threshold calibration**: `experiments/calibrate_thresholds.py` runs a coordinate-descent scan over every `PruneConfig` threshold against redundancy annotations, with a synthetic annotated-graph generator for offline validation.
+- **Step-level annotation pipeline**: `experiments/annotate_steps.py` produces deterministic per-node correctness labels from NGS violations, consumable by the step classifier.
+- **Step classifier and clustering**: `analysis/step_classifier.py` predicts per-step error probability from 17 structural features (11 structural + 6 type one-hot) without white-box access; `analysis/step_clustering.py` merges chain segments into macro-steps (LLM-MindMap-style).
+- **Statistical rigor helpers**: `bootstrap_tsi_ci` (bootstrap confidence interval for TSI scores) and `cohens_d` (effect size) in `core/robust_tsi.py`; `PruningReport.savings_range()` surfaces a +/-40% heuristic band instead of false precision.
+- **HuggingFace datasets adapter**: `utils/hf_adapter.py` supports any CoT dataset (gsm8k / math / plain parsers with auto-sniffing, custom mappers, streaming iteration, and export back to HF format).
+- **Unified experiment entrypoint**: `experiments/run.py` exposes `extract / analyze / prune / calibrate / annotate / all` behind one CLI, writing versioned run directories with `manifest.json` provenance (git commit, Python version, args, UTC timestamp).
+- **Observability**: `utils/trace_exporters.py` provides OTLP and Langfuse trace exporters behind a unified interface, degrading to a no-op exporter when dependencies are missing.
+- **GitHub Actions CI**: `.github/workflows/ci.yml` runs the full test suite on Python 3.10 / 3.11 / 3.12.
+- **Documentation**: rewritten `README.md` (pipeline diagram, research feature tables, related-work mapping, unified entrypoint); `docs/comparison.md` capability matrix; `docs/api.md` API reference; `experiments/notebooks/end_to_end.ipynb` runnable walkthrough; new `hf` / `obs` / `notebook` / `all` extras in `pyproject.toml`.
+- **Tests**: 57 new tests across 8 modules (failure modes, savings range, domain overrides, calibration, HF adapter, exporters, step clustering, step classifier, run CLI).
+
+### Changed
+
+- `README.md` corrected the step-classifier feature count (17, not 21).
+
+### Fixed
+
+- `analysis/step_classifier.py`: generator-expression `NameError` when a step references out-of-graph node ids; now safely skips missing ids.
+- `experiments/synthetic_redundant_cots.py`: `_inject_long_transform_chain` accepted an `rng` argument to match the injector protocol.
+- `experiments/run.py`: robust iteration over `GraphMetrics` fields, non-numeric `trace_id` handling, and `--synthetic` flag for `calibrate`.
+
 ## [3.3.0] - 2026-07-31
 
 ### Added

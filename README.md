@@ -25,7 +25,7 @@ ReasoningTraceGraph (typed DAG: Retrieve/Transform/Verify/Branch/Backtrack/Compa
     ├──► validate    NGS structural rules + failure-mode taxonomy (Type I/II)
     ├──► analyze     graph metrics, motifs, TSI/JSD matrices, structure↔correctness
     ├──► prune       redundancy regions → pruned graph (DAG-preserving)
-    ├──► classify    per-step error probability (GradientBoosting on 21 structural features)
+    ├──► classify    per-step error probability (GradientBoosting on 17 structural features)
     └──► benchmark   GCP · NGS pass rate · TSI · authorship fingerprint
 ```
 
@@ -101,7 +101,7 @@ pruned = report.pruned_graph
 |---|---|---|
 | Failure-mode taxonomy (Type I structural inefficiency / Type II dependency violation) | `core/ngs_validator.py` + `docs/failure_modes.md` | CoT2Graph |
 | Semantic step clustering (merge chain segments into macro-steps) | `analysis/step_clustering.py` | LLM-MindMap (EMNLP 2025) |
-| Step-level correctness classifier (21 structural features, no white-box access) | `analysis/step_classifier.py` | CRV (Meta FAIR, arXiv 2510.09312) |
+| Step-level correctness classifier (17 structural features, no white-box access) | `analysis/step_classifier.py` | CRV (Meta FAIR, arXiv 2510.09312) |
 | Domain-adaptive thresholds | `analysis/prune.py` `PruneConfig.domain_overrides` | CRV's finding that error signatures are domain-dependent |
 
 ### C. Engineering
@@ -124,6 +124,14 @@ RTSA sits at the intersection of three active lines of research:
 | **CoT2Graph** | CoT-to-graph transformation with reasoning-path validation and failure modes | `core/ngs_validator.py` failure-mode taxonomy + `extractors/` |
 
 A capability-by-capability matrix is maintained in [docs/comparison.md](docs/comparison.md).
+
+## Documentation
+
+- [docs/api.md](docs/api.md) — public API reference and module layout
+- [docs/comparison.md](docs/comparison.md) — capability matrix vs. LLM-MindMap / CRV / CoT2Graph
+- [docs/failure_modes.md](docs/failure_modes.md) — NGS failure-mode taxonomy
+- [docs/README.md](docs/README.md) — documentation index
+- [CHANGELOG.md](CHANGELOG.md) — version history (Keep a Changelog)
 
 ## Unified Experiment Entrypoint
 
