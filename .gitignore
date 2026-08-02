@@ -77,9 +77,9 @@ venv.bak/
 Thumbs.db
 
 # Project-specific
-experiments/results/*.json
-experiments/results/*.jsonl
-experiments/results/runs/
-!experiments/results/.gitkeep
+**/experiments/results/*.json
+**/experiments/results/*.jsonl
+**/experiments/results/runs/
+!**/experiments/results/.gitkeep
 data/extracted_graphs/*.json
 !data/extracted_graphs/.gitkeep
