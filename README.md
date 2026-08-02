@@ -3,6 +3,8 @@
 <p align="center"><strong>Reasoning Trace Structure Analysis</strong> — study Chain-of-Thought reasoning as a structured graph; no white-box model access required.</p>
 
 <p align="center">
+  <a href="https://pypi.org/project/rtsa/"><img src="https://img.shields.io/pypi/v/rtsa.svg" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/rtsa/"><img src="https://img.shields.io/pypi/pyversions/rtsa.svg" alt="Python versions"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://github.com/Fengrru/rtsa/actions"><img src="https://img.shields.io/badge/CI-GitHub%20Actions-green.svg" alt="CI"></a>
