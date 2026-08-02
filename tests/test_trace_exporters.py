@@ -1,6 +1,6 @@
 """Tests for utils.trace_exporters (C12)."""
 
-from utils.trace_exporters import (
+from rtsa.utils.trace_exporters import (
     NullTraceExporter, OtlpTraceExporter, make_trace_exporter,
 )
 

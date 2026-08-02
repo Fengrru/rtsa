@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from analysis.benchmark import ExtractorBenchmark, BenchmarkReport, benchmark_extractors
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.analysis.benchmark import ExtractorBenchmark, BenchmarkReport, benchmark_extractors
 
 
 def _make_graph(n_nodes=5, trace_id="g"):

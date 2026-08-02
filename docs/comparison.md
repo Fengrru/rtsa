@@ -17,14 +17,14 @@ Legend: yes / no / partial / n/a (not applicable to that work's goal)
 | Redundancy detection & pruning | no | no | no | **yes** — region-level detection + DAG-preserving executable pruning |
 | Failure-mode taxonomy | no | binary error/ok | reasoning-path failure classes | **yes** — Type I (structural inefficiency) / Type II (dependency violation), 7 modes |
 | Domain-adaptive thresholds | no | yes (signatures domain-dependent) | no | **yes** — `PruneConfig.domain_overrides` |
-| Structure ↔ correctness correlation | yes (reported) | implicit | no | **yes** — `experiments/correlation_analysis.py` (Spearman, p-values) |
-| Threshold calibration workflow | no | no | no | **yes** — `experiments/calibrate_thresholds.py` (coordinate-descent grid scan) |
+| Structure ↔ correctness correlation | yes (reported) | implicit | no | **yes** — `rtsa/experiments/correlation_analysis.py` (Spearman, p-values) |
+| Threshold calibration workflow | no | no | no | **yes** — `rtsa/experiments/calibrate_thresholds.py` (coordinate-descent grid scan) |
 | Similarity / authorship fingerprinting | no | no | no | **yes** — supervised Robust-TSI + unsupervised WL-kernel + fingerprint |
 | Annotation burden | none | step labels (costly) | none | **zero-annotation path** — NGS-rule labels, optional LLM/human judge |
 | Statistical rigor (CI / effect size) | partial | partial | no | **yes** — bootstrap CI, Cohen's d, savings error bands |
-| Tooling (CLI, versioned runs, CI) | partial | no | partial | **yes** — `experiments/run.py` + manifest.json + GitHub Actions |
+| Tooling (CLI, versioned runs, CI) | partial | no | partial | **yes** — `rtsa/experiments/run.py` + manifest.json + GitHub Actions |
 | Observability | no | no | no | **yes** — OTLP / Langfuse exporters (optional) |
-| Dataset flexibility | fixed benchmarks | fixed | fixed | **any** HuggingFace dataset via `utils/hf_adapter.py` |
+| Dataset flexibility | fixed benchmarks | fixed | fixed | **any** HuggingFace dataset via `rtsa/utils/hf_adapter.py` |
 
 ## Design principles behind the differences
 

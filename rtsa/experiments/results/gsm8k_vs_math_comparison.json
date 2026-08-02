@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-07-20 13:45:19",
+  "gsm8k": {
+    "n_traces": 50,
+    "mean_length": 44.1,
+    "rbe_nodes_per_trace": 1.32,
+    "sbe_nodes_per_trace": 1.4
+  },
+  "math": {
+    "n_traces": 98,
+    "mean_length": 69.06122448979592,
+    "rbe_nodes_per_trace": 1.663265306122449,
+    "sbe_nodes_per_trace": 1.7346938775510203
+  }
+}

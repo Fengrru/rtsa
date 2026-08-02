@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from core.robust_tsi import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.core.robust_tsi import (
     extract_level1_features, extract_level1_features_batch,
     RobustTSI, UnsupervisedTSI, bootstrap_tsi_ci, cohens_d,
 )

@@ -36,21 +36,21 @@ pytest tests/ --cov=core --cov=analysis --cov=extractors --cov-report=html
 
 ## Adding a New Extractor
 
-1. Create a new file in `extractors/` inheriting from the base extractor interface.
+1. Create a new file in `rtsa/extractors/` inheriting from the base extractor interface.
 2. Implement `extract(self, text: str, **kwargs) -> ReasoningTraceGraph`.
-3. Register it in `extractors/__init__.py`.
+3. Register it in `rtsa/extractors/__init__.py`.
 4. Add tests in `tests/test_extractors/`.
 
 ## Adding a New Analysis Module
 
-1. Create a new file in `analysis/`.
+1. Create a new file in `rtsa/analysis/`.
 2. Use `ReasoningTraceGraph` from `core.types` as the input type.
 3. Return structured results using `dataclass` or Pydantic models.
 4. Add unit tests in `tests/test_analysis/`.
 
 ## Adding a New Dataset Adapter
 
-1. Add a parser to `utils/hf_adapter.py` and register it in `COT_PARSERS`.
+1. Add a parser to `rtsa/utils/hf_adapter.py` and register it in `COT_PARSERS`.
 2. Keep parsers pure (no I/O): `(text: str) -> (cot, answer)`.
 3. Add unit tests in `tests/test_hf_adapter.py` covering the parser and auto-sniffing.
 
@@ -67,7 +67,7 @@ python -m experiments.run annotate
 python -m experiments.run all       --dataset gsm8k
 ```
 
-Every run writes to `experiments/results/runs/<command>_<timestamp>/` with a
+Every run writes to `rtsa/experiments/results/runs/<command>_<timestamp>/` with a
 `manifest.json` recording the git commit, Python version, arguments, and UTC
 timestamp. Never commit run outputs to the repository; they are ignored via
 `.gitignore`.

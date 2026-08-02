@@ -1,0 +1,16 @@
+{
+  "command": "calibrate",
+  "started_at": "2026-08-01T02:03:48.047922+00:00",
+  "git_commit": "354963b",
+  "python_version": "3.14.6",
+  "args": {
+    "seed": "42",
+    "command": "calibrate",
+    "annotations_file": "None",
+    "synthetic": "True",
+    "n_synthetic": "20",
+    "iterations": "1",
+    "metric": "f1"
+  },
+  "source": "synthetic"
+}

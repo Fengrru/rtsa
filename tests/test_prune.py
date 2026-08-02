@@ -1,8 +1,8 @@
 """Tests for analysis.prune — redundancy detection & CoT pruning."""
 
 import pytest
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from analysis.prune import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.analysis.prune import (
     PruneConfig,
     RedundancyAnalyzer,
     prune_graph,

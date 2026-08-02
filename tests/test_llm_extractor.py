@@ -1,11 +1,11 @@
 """Tests for LLM extractor with mock client (no API key needed)."""
 
 import pytest
-from extractors.llm_extractor import (
+from rtsa.extractors.llm_extractor import (
     LLMClient, LLMExtractor, MockLLMClient,
     create_mock_extractor, EXTRACTION_PROMPT,
 )
-from core.types import ReasoningTraceGraph
+from rtsa.core.types import ReasoningTraceGraph
 
 
 class TestMockLLMClient:
@@ -93,20 +93,20 @@ class TestLLMClient:
 
 class TestLLMExtractorInit:
     def test_create_e4_factory(self):
-        from extractors.llm_extractor import create_extractor_e4
+        from rtsa.extractors.llm_extractor import create_extractor_e4
         ext = create_extractor_e4(api_key="sk-test")
         assert ext.name == "gpt-4"
         assert ext.client.provider == "openai"
         assert ext.client.model == "gpt-4"
 
     def test_create_e5_factory(self):
-        from extractors.llm_extractor import create_extractor_e5
+        from rtsa.extractors.llm_extractor import create_extractor_e5
         ext = create_extractor_e5(api_key="sk-test")
         assert ext.name == "claude-3.5"
         assert ext.client.provider == "anthropic"
 
     def test_create_e6_factory(self):
-        from extractors.llm_extractor import create_extractor_e6
+        from rtsa.extractors.llm_extractor import create_extractor_e6
         ext = create_extractor_e6()
         assert ext.name == "qwen-2.5"
         assert ext.client.provider == "local"

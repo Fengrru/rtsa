@@ -2,12 +2,12 @@
 
 import pytest
 import numpy as np
-from core.types import NodeType
-from extractors.gcp_validator import (
+from rtsa.core.types import NodeType
+from rtsa.extractors.gcp_validator import (
     GCPValidator, compute_gcs, GCSSentence,
     GCS_CORPUS_FULL, GCPResult, make_gcp_adapter,
 )
-from extractors.rule_based import RuleBasedExtractor
+from rtsa.extractors.rule_based import RuleBasedExtractor
 
 
 class TestComputeGCS:

@@ -2,7 +2,7 @@
 
 import json
 
-from utils.hf_adapter import (
+from rtsa.utils.hf_adapter import (
     COT_PARSERS, _parse_gsm8k, _parse_math, _parse_plain, _sniff_parser,
     save_hf_traces,
 )

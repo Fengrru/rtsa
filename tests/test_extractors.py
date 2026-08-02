@@ -1,10 +1,10 @@
 """Tests for Rule-Based, Syntax-Based, and Random Baseline extractors."""
 
 import pytest
-from core.types import NodeType, ReasoningTraceGraph
-from extractors.rule_based import RuleBasedExtractor, KEYWORD_RULES
-from extractors.syntax_based import SyntaxBasedExtractor
-from extractors.random_baseline import RandomBaselineExtractor, ShuffledTypeExtractor
+from rtsa.core.types import NodeType, ReasoningTraceGraph
+from rtsa.extractors.rule_based import RuleBasedExtractor, KEYWORD_RULES
+from rtsa.extractors.syntax_based import SyntaxBasedExtractor
+from rtsa.extractors.random_baseline import RandomBaselineExtractor, ShuffledTypeExtractor
 
 
 # ─── RuleBasedExtractor ───────────────────────────────────────────────────────
@@ -203,7 +203,7 @@ class TestRuleBasedExtractorChinese:
 
 class TestShuffledTypeExtractor:
     def test_preserves_structure(self):
-        from core.types import GraphNode, NodeType, ReasoningTraceGraph
+        from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
         nodes = [
             GraphNode(id=1, type=NodeType.RETRIEVE),
             GraphNode(id=2, type=NodeType.TRANSFORM),
@@ -218,7 +218,7 @@ class TestShuffledTypeExtractor:
         assert shuffled.extractor == "shuffled_type"
 
     def test_types_may_differ(self):
-        from core.types import GraphNode, NodeType, ReasoningTraceGraph
+        from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
         nodes = [
             GraphNode(id=1, type=NodeType.RETRIEVE),
             GraphNode(id=2, type=NodeType.TRANSFORM),

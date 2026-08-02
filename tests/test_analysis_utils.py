@@ -2,11 +2,11 @@
 
 import numpy as np
 import pytest
-from analysis import (
+from rtsa.analysis import (
     CostEstimator, CostBreakdown, estimate_project_cost,
     kruskal_wallis_test, bootstrap_ci, cohens_d, partial_correlation,
 )
-from extractors.analysis import GPU_PRICING, GEN_SPEED
+from rtsa.extractors.analysis import GPU_PRICING, GEN_SPEED
 
 
 class TestCostBreakdown:

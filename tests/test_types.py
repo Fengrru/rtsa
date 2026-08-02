@@ -1,7 +1,7 @@
 """Tests for core types: NodeType, GraphNode, ReasoningTraceGraph, MotifEntry."""
 
 import pytest
-from core.types import (
+from rtsa.core.types import (
     NodeType, GraphNode, ReasoningTraceGraph,
     MotifEntry, MOTIF_CATALOG, MOTIF_LOOKUP,
 )

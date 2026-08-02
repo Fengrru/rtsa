@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from analysis.step_classifier import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.analysis.step_classifier import (
     StepDiagnosis, StepFeatureExtractor, StepCorrectnessClassifier,
 )
 

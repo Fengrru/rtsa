@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from scipy.stats import spearmanr
 
-from analysis.performance_correlation import (
+from rtsa.analysis.performance_correlation import (
     _bh_fdr,
     bootstrap_rho_ci,
     build_metric_specs,

@@ -1,10 +1,10 @@
 # API Reference
 
-RTSA is organized into five layers. Everything in `core/`, `analysis/`,
-`extractors/`, and `utils/` is importable directly; `experiments/` contains
+RTSA is organized into five layers. Everything in `rtsa/core/`, `rtsa/analysis/`,
+`rtsa/extractors/`, and `rtsa/utils/` is importable directly; `rtsa/experiments/` contains
 reproducible experiment scripts rather than a library surface.
 
-## Core Data Model (`core/types.py`)
+## Core Data Model (`rtsa/core/types.py`)
 
 The single shared representation for all reasoning traces.
 
@@ -14,7 +14,7 @@ The single shared representation for all reasoning traces.
 | `GraphNode` | Pydantic node: `id`, `type`, `text`, `span`, `meta` |
 | `ReasoningTraceGraph` | Pydantic graph: `trace_id`, `nodes`, `edges`; helpers `to_networkx()`, `is_valid()`, `to_json()` |
 
-## Layer 1: Core (`core/`)
+## Layer 1: Core (`rtsa/core/`)
 
 | Symbol | Description |
 |---|---|
@@ -29,7 +29,7 @@ The single shared representation for all reasoning traces.
 | `classify_failure_mode(violations)` | Maps violations to the Type I / Type II failure-mode taxonomy |
 | `NGSRule`, `NGSViolation` | Rule enum and violation record |
 
-## Layer 2: Extractors (`extractors/`)
+## Layer 2: Extractors (`rtsa/extractors/`)
 
 CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **metadata)`.
 
@@ -41,7 +41,7 @@ CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **meta
 | `RandomBaselineExtractor` / `ShuffledTypeExtractor` | Random baselines for GCP benchmarking |
 | `JPDirectedPreservingRandomizer` / `EdgeRewiringBaseline` / `PermutationBaseline` / `EnsembleBaseline` | Graph randomizations for baseline comparison |
 
-## Layer 3: Analysis (`analysis/`)
+## Layer 3: Analysis (`rtsa/analysis/`)
 
 | Symbol | Description |
 |---|---|
@@ -54,7 +54,7 @@ CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **meta
 | `synthetic_performance_graphs` | Validation graphs with a known redundancy-driven score |
 | Fingerprint module | `ModelSignature`, `FingerprintMatchResult`; CLI `rtsa fingerprint enroll/identify` |
 
-## Layer 4: Utilities (`utils/`)
+## Layer 4: Utilities (`rtsa/utils/`)
 
 | Symbol | Description |
 |---|---|
@@ -64,7 +64,7 @@ CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **meta
 | `data_loader` / `gsm8k_loader` / `math_loader` | Bundled corpus loaders |
 | `visualize` | DAG plotting helpers |
 
-## Layer 5: Experiments (`experiments/`)
+## Layer 5: Experiments (`rtsa/experiments/`)
 
 | Entry point | Purpose |
 |---|---|
@@ -74,7 +74,7 @@ CoT text -> `ReasoningTraceGraph`. All implement `extract(text, trace_id, **meta
 | `python -m experiments.correlation_analysis` | Spearman structure-correctness correlation (synthetic or labeled data) |
 | `python -m experiments.end_to_end_prune` | Dataset-level pruning evaluation (synthetic / gsm8k / mixed) |
 | `python -m experiments.synthetic_redundant_cots` | Controlled synthetic CoT corpus with injected redundancy |
-| `experiments/notebooks/end_to_end.ipynb` | Runnable full-pipeline walkthrough |
+| `rtsa/experiments/notebooks/end_to_end.ipynb` | Runnable full-pipeline walkthrough |
 
 ## CLI (`rtsa`)
 

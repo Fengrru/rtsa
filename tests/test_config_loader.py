@@ -5,7 +5,7 @@ import json
 import tempfile
 import pytest
 from pathlib import Path
-from config import load_config
+from rtsa.config import load_config
 
 
 def _write_yaml(path: str, data: dict):

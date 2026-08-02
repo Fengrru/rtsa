@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from core.metrics import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.core.metrics import (
     compute_graph_features, compute_graph_features_batch,
     compute_feature_matrix, GraphMetrics,
 )

@@ -1,8 +1,8 @@
 """Tests for NGS Validator — all six iron rules."""
 
 import pytest
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from core.ngs_validator import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.core.ngs_validator import (
     NGSValidator, NGSRule, NGSViolation,
     NGSRobustnessTester, classify_failure_mode,
     FAILURE_MODE_TAXONOMY,

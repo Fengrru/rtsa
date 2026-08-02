@@ -8,8 +8,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from analysis.prune import PruneConfig, RedundancyAnalyzer
-from experiments.calibrate_thresholds import (
+from rtsa.analysis.prune import PruneConfig, RedundancyAnalyzer
+from rtsa.experiments.calibrate_thresholds import (
     PARAM_GRID, aggregate, predict_redundant, run,
     synthetic_annotated_graphs,
 )

@@ -6,8 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import experiments.run as run_module
-from experiments.run import build_parser, git_commit
+import rtsa.experiments.run as run_module
+from rtsa.experiments.run import build_parser, git_commit
 
 
 def test_parser_exposes_all_commands():

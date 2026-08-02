@@ -1,8 +1,8 @@
 """Tests for randomization baselines: JP-DPR, Edge Rewiring, Permutation, Ensemble."""
 
 import pytest
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from extractors.baselines import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.extractors.baselines import (
     JPDirectedPreservingRandomizer,
     EdgeRewiringBaseline,
     PermutationBaseline,
@@ -10,7 +10,7 @@ from extractors.baselines import (
     compute_tsi_threshold,
     compute_stable_rate,
 )
-from extractors.random_baseline import RandomBaselineExtractor, ShuffledTypeExtractor
+from rtsa.extractors.random_baseline import RandomBaselineExtractor, ShuffledTypeExtractor
 
 
 def _make_chain():

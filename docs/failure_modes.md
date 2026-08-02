@@ -10,7 +10,7 @@ Every `NGSViolation` carries a `failure_mode` field; group violations with
 ## Two top-level categories
 
 - **Type I — Structural inefficiency**: the trace wastes steps (overthinking,
-  over-splitting, merged operations). These are pruning targets: `analysis/prune.py`
+  over-splitting, merged operations). These are pruning targets: `rtsa/analysis/prune.py`
   converts them into `RedundancyRegion`s with `suggested_action="merge"`.
 - **Type II — Graph dependency violation**: the causal structure of the trace is
   broken (orphan steps, missing links). These are *correctness* signals: they
@@ -35,12 +35,12 @@ CoT2Graph reports that verification loops start appearing once traces reach
 length. The Type I modes above are the graph-level manifestations of that
 finding: `merged_computation` and `pseudo_branch` dominate long, oververbose
 traces, which is why `PruneConfig` exposes per-domain thresholds for them
-(see `analysis/prune.py` `domain_overrides`).
+(see `rtsa/analysis/prune.py` `domain_overrides`).
 
 ## Usage
 
 ```python
-from core.ngs_validator import NGSValidator, classify_failure_mode
+from rtsa.core.ngs_validator import NGSValidator, classify_failure_mode
 
 validator = NGSValidator()
 is_valid, violations = validator.validate(graph)

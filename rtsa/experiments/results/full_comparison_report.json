@@ -1,0 +1,408 @@
+{
+  "gsm8k_rbe": {
+    "n_traces": 50,
+    "n_total_nodes": 66,
+    "n_total_edges": 19,
+    "avg_nodes": 1.32,
+    "avg_edges": 0.38,
+    "features": {
+      "n_nodes_mean": 1.32,
+      "n_edges_mean": 0.38,
+      "depth_mean": 0.32,
+      "branching_mean": 0.1373,
+      "verify_density_mean": 0.0,
+      "entropy_mean": 0.1221,
+      "n_nodes_max": 5,
+      "depth_max": 4
+    },
+    "motifs": {
+      "M1": {
+        "mean_freq": 0.04,
+        "total_count": 2,
+        "pattern": "Chain(3)",
+        "size": 3
+      },
+      "M10": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Transform-Transform",
+        "size": 2
+      },
+      "M11": {
+        "mean_freq": 0.02,
+        "total_count": 1,
+        "pattern": "Retrieve-Transform",
+        "size": 2
+      },
+      "M12": {
+        "mean_freq": 0.04,
+        "total_count": 2,
+        "pattern": "Transform-Branch",
+        "size": 2
+      },
+      "M2": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Fork(3)",
+        "size": 3
+      },
+      "M3": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Diamond(4)",
+        "size": 4
+      },
+      "M5": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Verify-After-Transform",
+        "size": 2
+      },
+      "M6": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Backtrack-Recover",
+        "size": 2
+      },
+      "M7": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Branch-Explore",
+        "size": 3
+      },
+      "M8": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Multi-Verify",
+        "size": 3
+      },
+      "M9": {
+        "mean_freq": 0.14,
+        "total_count": 7,
+        "pattern": "Branch-Transform",
+        "size": 2
+      }
+    },
+    "n_nonzero_motifs": 4,
+    "tdi": 0.8103,
+    "node_types": {
+      "Transform": 50,
+      "Branch": 14,
+      "Retrieve": 1,
+      "Compare": 1
+    },
+    "correct_rate": 1.0
+  },
+  "gsm8k_sbe": {
+    "n_traces": 50,
+    "n_total_nodes": 70,
+    "n_total_edges": 24,
+    "avg_nodes": 1.4,
+    "avg_edges": 0.48,
+    "features": {
+      "n_nodes_mean": 1.4,
+      "n_edges_mean": 0.48,
+      "depth_mean": 0.4,
+      "branching_mean": 0.1533,
+      "verify_density_mean": 0.0,
+      "entropy_mean": 0.148,
+      "n_nodes_max": 6,
+      "depth_max": 5
+    },
+    "motifs": {
+      "M1": {
+        "mean_freq": 0.06,
+        "total_count": 3,
+        "pattern": "Chain(3)",
+        "size": 3
+      },
+      "M10": {
+        "mean_freq": 0.06,
+        "total_count": 3,
+        "pattern": "Transform-Transform",
+        "size": 2
+      },
+      "M11": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Retrieve-Transform",
+        "size": 2
+      },
+      "M12": {
+        "mean_freq": 0.04,
+        "total_count": 2,
+        "pattern": "Transform-Branch",
+        "size": 2
+      },
+      "M2": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Fork(3)",
+        "size": 3
+      },
+      "M3": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Diamond(4)",
+        "size": 4
+      },
+      "M5": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Verify-After-Transform",
+        "size": 2
+      },
+      "M6": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Backtrack-Recover",
+        "size": 2
+      },
+      "M7": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Branch-Explore",
+        "size": 3
+      },
+      "M8": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Multi-Verify",
+        "size": 3
+      },
+      "M9": {
+        "mean_freq": 0.16,
+        "total_count": 8,
+        "pattern": "Branch-Transform",
+        "size": 2
+      }
+    },
+    "n_nonzero_motifs": 4,
+    "tdi": 0.7929,
+    "node_types": {
+      "Transform": 55,
+      "Branch": 11,
+      "Compare": 4
+    },
+    "correct_rate": 1.0
+  },
+  "gsm8k_deepseek": {
+    "n_traces": 10,
+    "n_total_nodes": 31,
+    "n_total_edges": 21,
+    "avg_nodes": 3.1,
+    "avg_edges": 2.1,
+    "features": {
+      "n_nodes_mean": 3.1,
+      "n_edges_mean": 2.1,
+      "depth_mean": 2.1,
+      "verify_density_mean": 0.0
+    },
+    "tdi": 0.6648
+  },
+  "math_rbe": {
+    "n_traces": 98,
+    "n_total_nodes": 163,
+    "n_total_edges": 74,
+    "avg_nodes": 1.6633,
+    "avg_edges": 0.7551,
+    "features": {
+      "n_nodes_mean": 1.6633,
+      "n_edges_mean": 0.7551,
+      "depth_mean": 0.6633,
+      "branching_mean": 0.2313,
+      "verify_density_mean": 0.0111,
+      "entropy_mean": 0.2418,
+      "n_nodes_max": 6,
+      "depth_max": 5
+    },
+    "motifs": {
+      "M1": {
+        "mean_freq": 0.1735,
+        "total_count": 17,
+        "pattern": "Chain(3)",
+        "size": 3
+      },
+      "M10": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Transform-Transform",
+        "size": 2
+      },
+      "M11": {
+        "mean_freq": 0.0408,
+        "total_count": 4,
+        "pattern": "Retrieve-Transform",
+        "size": 2
+      },
+      "M12": {
+        "mean_freq": 0.1224,
+        "total_count": 12,
+        "pattern": "Transform-Branch",
+        "size": 2
+      },
+      "M2": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Fork(3)",
+        "size": 3
+      },
+      "M3": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Diamond(4)",
+        "size": 4
+      },
+      "M5": {
+        "mean_freq": 0.0306,
+        "total_count": 3,
+        "pattern": "Verify-After-Transform",
+        "size": 2
+      },
+      "M6": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Backtrack-Recover",
+        "size": 2
+      },
+      "M7": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Branch-Explore",
+        "size": 3
+      },
+      "M8": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Multi-Verify",
+        "size": 3
+      },
+      "M9": {
+        "mean_freq": 0.1735,
+        "total_count": 17,
+        "pattern": "Branch-Transform",
+        "size": 2
+      }
+    },
+    "n_nonzero_motifs": 5,
+    "tdi": 0.6723,
+    "node_types": {
+      "Transform": 111,
+      "Branch": 28,
+      "Compare": 14,
+      "Retrieve": 6,
+      "Verify": 4
+    },
+    "correct_rate": 1.0
+  },
+  "math_sbe": {
+    "n_traces": 98,
+    "n_total_nodes": 170,
+    "n_total_edges": 82,
+    "avg_nodes": 1.7347,
+    "avg_edges": 0.8367,
+    "features": {
+      "n_nodes_mean": 1.7347,
+      "n_edges_mean": 0.8367,
+      "depth_mean": 0.7347,
+      "branching_mean": 0.231,
+      "verify_density_mean": 0.0102,
+      "entropy_mean": 0.224,
+      "n_nodes_max": 8,
+      "depth_max": 7
+    },
+    "motifs": {
+      "M1": {
+        "mean_freq": 0.1939,
+        "total_count": 19,
+        "pattern": "Chain(3)",
+        "size": 3
+      },
+      "M10": {
+        "mean_freq": 0.051,
+        "total_count": 5,
+        "pattern": "Transform-Transform",
+        "size": 2
+      },
+      "M11": {
+        "mean_freq": 0.0714,
+        "total_count": 7,
+        "pattern": "Retrieve-Transform",
+        "size": 2
+      },
+      "M12": {
+        "mean_freq": 0.0918,
+        "total_count": 9,
+        "pattern": "Transform-Branch",
+        "size": 2
+      },
+      "M2": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Fork(3)",
+        "size": 3
+      },
+      "M3": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Diamond(4)",
+        "size": 4
+      },
+      "M5": {
+        "mean_freq": 0.0204,
+        "total_count": 2,
+        "pattern": "Verify-After-Transform",
+        "size": 2
+      },
+      "M6": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Backtrack-Recover",
+        "size": 2
+      },
+      "M7": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Branch-Explore",
+        "size": 3
+      },
+      "M8": {
+        "mean_freq": 0.0,
+        "total_count": 0,
+        "pattern": "Multi-Verify",
+        "size": 3
+      },
+      "M9": {
+        "mean_freq": 0.1224,
+        "total_count": 12,
+        "pattern": "Branch-Transform",
+        "size": 2
+      }
+    },
+    "n_nonzero_motifs": 6,
+    "tdi": 0.6697,
+    "node_types": {
+      "Transform": 124,
+      "Branch": 20,
+      "Compare": 14,
+      "Retrieve": 8,
+      "Verify": 3,
+      "Backtrack": 1
+    },
+    "correct_rate": 1.0
+  },
+  "math_deepseek": {
+    "n_traces": 10,
+    "n_total_nodes": 29,
+    "n_total_edges": 19,
+    "avg_nodes": 2.9,
+    "avg_edges": 1.9,
+    "features": {
+      "n_nodes_mean": 2.9,
+      "n_edges_mean": 1.9,
+      "depth_mean": 1.9,
+      "verify_density_mean": 0.025
+    },
+    "tdi": 0.4805
+  }
+}

@@ -30,9 +30,9 @@ pip install rtsa
 ```
 
 ```python
-from extractors import RuleBasedExtractor
-from core.ngs_validator import NGSValidator
-from analysis.prune import RedundancyAnalyzer, PruneConfig
+from rtsa.extractors import RuleBasedExtractor
+from rtsa.core.ngs_validator import NGSValidator
+from rtsa.analysis.prune import RedundancyAnalyzer, PruneConfig
 
 text = "Retrieve x=3. Transform: x*2=6. Verify: 6 is even."
 graph = RuleBasedExtractor().extract(text, trace_id="demo_001")
@@ -52,9 +52,9 @@ rtsa prune graph.json --apply --output pruned.json
 
 | Question | Answer |
 |---|---|
-| Is this trace redundant, and where? | Region-level redundancy detection + executable DAG pruning (`analysis/prune.py`) |
-| Is this reasoning step correct? | Black-box step classifier on 17 structural features (`analysis/step_classifier.py`, CRV-inspired) |
-| Does structure predict correctness? | 19-metric benchmark with FDR correction and bootstrap CIs (`analysis/performance_correlation.py`) |
+| Is this trace redundant, and where? | Region-level redundancy detection + executable DAG pruning (`rtsa/analysis/prune.py`) |
+| Is this reasoning step correct? | Black-box step classifier on 17 structural features (`rtsa/analysis/step_classifier.py`, CRV-inspired) |
+| Does structure predict correctness? | 19-metric benchmark with FDR correction and bootstrap CIs (`rtsa/analysis/performance_correlation.py`) |
 | Which model wrote this? | Structural-style authorship fingerprinting (`rtsa fingerprint`) |
 | How similar are two traces? | Supervised Robust-TSI + unsupervised WL-kernel similarity |
 
@@ -62,17 +62,17 @@ rtsa prune graph.json --apply --output pruned.json
 
 | Capability | Implementation | Maturity |
 |---|---|---|
-| CoT -> graph extraction | `extractors/` (rule / syntax / LLM / random baselines) | Stable |
-| Structural validation | `core/ngs_validator.py` — 13 NGS rules, Type I/II failure modes (7 classes) | Stable |
-| Redundancy pruning | `analysis/prune.py` — 4 detectors, DAG-preserving, domain-adaptive thresholds | Stable |
-| Step-level analysis | `analysis/step_classifier.py` `step_clustering.py` — 17-dim error probability, macro-step clustering | Evolving |
-| Similarity & fingerprinting | `core/robust_tsi.py` `analysis/fingerprint.py` — supervised TSI, WL-kernel, authorship | Stable |
-| Performance-correlation benchmark | `analysis/performance_correlation.py` — 19 metrics, Spearman + BH-FDR + bootstrap CI | Evolving |
-| Statistical rigor | `core/robust_tsi.py` — bootstrap CI, Cohen's d, savings error bands | Stable |
-| Extractor benchmarking | `analysis/benchmark.py` — GCP + NGS pass rate + TSI | Stable |
-| Dataset adapters | `utils/hf_adapter.py` — any HuggingFace CoT dataset | Evolving |
-| Observability | `utils/trace_exporters.py` — OTLP / Langfuse, no-op fallback | Experimental |
-| Reproducible experiments | `experiments/run.py` — versioned runs + manifest.json | Stable |
+| CoT -> graph extraction | `rtsa/extractors/` (rule / syntax / LLM / random baselines) | Stable |
+| Structural validation | `rtsa/core/ngs_validator.py` — 13 NGS rules, Type I/II failure modes (7 classes) | Stable |
+| Redundancy pruning | `rtsa/analysis/prune.py` — 4 detectors, DAG-preserving, domain-adaptive thresholds | Stable |
+| Step-level analysis | `rtsa/analysis/step_classifier.py` `step_clustering.py` — 17-dim error probability, macro-step clustering | Evolving |
+| Similarity & fingerprinting | `rtsa/core/robust_tsi.py` `rtsa/analysis/fingerprint.py` — supervised TSI, WL-kernel, authorship | Stable |
+| Performance-correlation benchmark | `rtsa/analysis/performance_correlation.py` — 19 metrics, Spearman + BH-FDR + bootstrap CI | Evolving |
+| Statistical rigor | `rtsa/core/robust_tsi.py` — bootstrap CI, Cohen's d, savings error bands | Stable |
+| Extractor benchmarking | `rtsa/analysis/benchmark.py` — GCP + NGS pass rate + TSI | Stable |
+| Dataset adapters | `rtsa/utils/hf_adapter.py` — any HuggingFace CoT dataset | Evolving |
+| Observability | `rtsa/utils/trace_exporters.py` — OTLP / Langfuse, no-op fallback | Experimental |
+| Reproducible experiments | `rtsa/experiments/run.py` — versioned runs + manifest.json | Stable |
 
 Maturity levels: **Stable** (battle-tested, covered by tests) · **Evolving** (functional, API may shift) · **Experimental** (proof of concept, optional deps).
 
@@ -95,9 +95,9 @@ ReasoningTraceGraph (typed DAG)
 
 | Work | Focus | RTSA counterpart |
 |---|---|---|
-| [LLM-MindMap](https://arxiv.org/abs/2505.13890) (EMNLP 2025) | Semantic step clustering; structural metrics predict performance | `analysis/step_clustering.py` + `analysis/performance_correlation.py` |
-| [CRV](https://arxiv.org/abs/2510.09312) (Meta FAIR) | Verify reasoning steps from structural features (AUROC 70-92%); signatures are domain-dependent | `analysis/step_classifier.py` + `PruneConfig.domain_overrides` |
-| [CoT2Graph](https://openreview.net/forum?id=0XfuJjhaI5) | CoT-to-graph with reasoning-path validation and failure modes | `core/ngs_validator.py` failure-mode taxonomy |
+| [LLM-MindMap](https://arxiv.org/abs/2505.13890) (EMNLP 2025) | Semantic step clustering; structural metrics predict performance | `rtsa/analysis/step_clustering.py` + `rtsa/analysis/performance_correlation.py` |
+| [CRV](https://arxiv.org/abs/2510.09312) (Meta FAIR) | Verify reasoning steps from structural features (AUROC 70-92%); signatures are domain-dependent | `rtsa/analysis/step_classifier.py` + `PruneConfig.domain_overrides` |
+| [CoT2Graph](https://openreview.net/forum?id=0XfuJjhaI5) | CoT-to-graph with reasoning-path validation and failure modes | `rtsa/core/ngs_validator.py` failure-mode taxonomy |
 
 A capability-by-capability matrix is maintained in [docs/comparison.md](docs/comparison.md).
 
@@ -108,7 +108,7 @@ python -m experiments.run extract     --dataset gsm8k --max-traces 50
 python -m experiments.run correlation --synthetic
 ```
 
-Every run lands in `experiments/results/runs/<command>_<timestamp>/` with a `manifest.json` recording git commit, Python version, arguments, and UTC timestamp. See the [full CLI](docs/api.md#layer-5-experiments-experiments) for all subcommands.
+Every run lands in `rtsa/experiments/results/runs/<command>_<timestamp>/` with a `manifest.json` recording git commit, Python version, arguments, and UTC timestamp. See the [full CLI](docs/api.md#layer-5-experiments-experiments) for all subcommands.
 
 ## Results
 
@@ -127,7 +127,7 @@ Selected numbers from the built-in validation and real-data runs (reproducible v
 - [docs/api.md](docs/api.md) — public API reference and module layout
 - [docs/comparison.md](docs/comparison.md) — capability matrix vs. LLM-MindMap / CRV / CoT2Graph
 - [docs/failure_modes.md](docs/failure_modes.md) — NGS failure-mode taxonomy
-- [experiments/notebooks/end_to_end.ipynb](experiments/notebooks/end_to_end.ipynb) — end-to-end walkthrough
+- [rtsa/experiments/notebooks/end_to_end.ipynb](rtsa/experiments/notebooks/end_to_end.ipynb) — end-to-end walkthrough
 - [CHANGELOG.md](CHANGELOG.md) — version history (Keep a Changelog)
 
 ## Tests

@@ -2,8 +2,8 @@
 
 from collections import defaultdict
 
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from analysis.step_clustering import StepClusterer
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.analysis.step_clustering import StepClusterer
 
 
 def _chain_graph(types, trace_id="chain"):

@@ -1,0 +1,217 @@
+{
+  "n_graphs": 60,
+  "n_incorrect": 27,
+  "label_type": "binary",
+  "alpha": 0.05,
+  "correlations": [
+    {
+      "metric": "verify_density",
+      "family": "global",
+      "spearman_rho": -0.8581286090033756,
+      "p_value": 1.9516148488503352e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.8807429163551789,
+      "ci_hi": -0.8071262496882956
+    },
+    {
+      "metric": "n_edges",
+      "family": "global",
+      "spearman_rho": -0.8532810931417096,
+      "p_value": 4.81939104895089e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.873359085768157,
+      "ci_hi": -0.7977818556652778
+    },
+    {
+      "metric": "avg_degree",
+      "family": "global",
+      "spearman_rho": -0.8532810931417096,
+      "p_value": 4.81939104895089e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.873359085768157,
+      "ci_hi": -0.7977818556652778
+    },
+    {
+      "metric": "graph_density",
+      "family": "global",
+      "spearman_rho": 0.8532810931417096,
+      "p_value": 4.81939104895089e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "positive",
+      "ci_lo": 0.7977818556652778,
+      "ci_hi": 0.873359085768157
+    },
+    {
+      "metric": "extraction_rate",
+      "family": "global",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.2360227376052123e-17,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "retrieve_ratio",
+      "family": "type_mix",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.2360227376052123e-17,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "transform_ratio",
+      "family": "type_mix",
+      "spearman_rho": 0.8586438468816826,
+      "p_value": 1.7693492851878222e-18,
+      "q_value": 1.2360227376052123e-17,
+      "significant": true,
+      "direction": "positive",
+      "ci_lo": 0.8071737116375398,
+      "ci_hi": 0.8815490006888465
+    },
+    {
+      "metric": "compare_ratio",
+      "family": "type_mix",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.2360227376052123e-17,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "verify_ratio",
+      "family": "type_mix",
+      "spearman_rho": -0.8581286090033756,
+      "p_value": 1.9516148488503352e-18,
+      "q_value": 1.2360227376052123e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.8807429163551789,
+      "ci_hi": -0.8071262496882956
+    },
+    {
+      "metric": "n_nodes",
+      "family": "global",
+      "spearman_rho": -0.8532810931417096,
+      "p_value": 4.81939104895089e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.873359085768157,
+      "ci_hi": -0.7977818556652778
+    },
+    {
+      "metric": "depth",
+      "family": "global",
+      "spearman_rho": -0.8532810931417096,
+      "p_value": 4.81939104895089e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.873359085768157,
+      "ci_hi": -0.7977818556652778
+    },
+    {
+      "metric": "branching",
+      "family": "global",
+      "spearman_rho": -0.8532810931417096,
+      "p_value": 4.81939104895089e-18,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.873359085768157,
+      "ci_hi": -0.7977818556652778
+    },
+    {
+      "metric": "branch_ratio",
+      "family": "type_mix",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.0211226283243263e-07,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "backtrack_ratio",
+      "family": "type_mix",
+      "spearman_rho": -0.6311258310354851,
+      "p_value": 6.449195547311535e-08,
+      "q_value": 1.0211226283243263e-07,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.7776637587387968,
+      "ci_hi": -0.4626723657600738
+    },
+    {
+      "metric": "max_out_degree",
+      "family": "shape",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "n_leaf_nodes",
+      "family": "shape",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "mean_text_len",
+      "family": "shape",
+      "spearman_rho": NaN,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "direction": "none",
+      "ci_lo": null,
+      "ci_hi": null
+    },
+    {
+      "metric": "entropy",
+      "family": "global",
+      "spearman_rho": -0.7367721265039695,
+      "p_value": 1.9376943696083195e-11,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.8418783278986175,
+      "ci_hi": -0.6026787940519948
+    },
+    {
+      "metric": "backtrack_rate",
+      "family": "global",
+      "spearman_rho": -0.6311258310354851,
+      "p_value": 6.449195547311535e-08,
+      "q_value": 1.0174269992229656e-17,
+      "significant": true,
+      "direction": "negative",
+      "ci_lo": -0.7776637587387968,
+      "ci_hi": -0.4626723657600738
+    }
+  ]
+}

@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from extractors.agreement import (
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.extractors.agreement import (
     levenshtein_distance, levenshtein_similarity,
     get_node_type_sequence, graph_level_iaa, motif_level_iaa,
     structure_level_iaa, compute_full_iaa,

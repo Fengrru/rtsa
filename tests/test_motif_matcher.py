@@ -2,10 +2,10 @@
 
 import pytest
 import numpy as np
-from core.types import (
+from rtsa.core.types import (
     GraphNode, NodeType, ReasoningTraceGraph, MotifEntry, MOTIF_LOOKUP,
 )
-from core.motif_matcher import MotifMatcher, MotifMatchResult
+from rtsa.core.motif_matcher import MotifMatcher, MotifMatchResult
 
 
 def _make_chain_graph():

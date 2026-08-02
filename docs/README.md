@@ -15,11 +15,11 @@ features, and the unified experiment entrypoint.
 ## Module Layout
 
 ```
-core/        graph types, metrics, similarity (TSI), motif matching, NGS validation
-extractors/  CoT -> ReasoningTraceGraph (rule-based, syntax-based, LLM, random baselines)
-analysis/    pruning, benchmarking, performance-correlation, fingerprinting, step classifier, step clustering
-utils/       data loading (GSM8K / MATH / HuggingFace), trace exporters, visualization
-experiments/ reproducible experiments and the unified entrypoint (run.py)
+rtsa/core/        graph types, metrics, similarity (TSI), motif matching, NGS validation
+rtsa/extractors/  CoT -> ReasoningTraceGraph (rule-based, syntax-based, LLM, random baselines)
+rtsa/analysis/    pruning, benchmarking, performance-correlation, fingerprinting, step classifier, step clustering
+rtsa/utils/       data loading (GSM8K / MATH / HuggingFace), trace exporters, visualization
+rtsa/experiments/ reproducible experiments and the unified entrypoint (run.py)
 ```
 
 ## Quick Orientation
@@ -29,4 +29,4 @@ experiments/ reproducible experiments and the unified entrypoint (run.py)
 - See [comparison.md](comparison.md) to understand how RTSA maps to current
   research (LLM-MindMap, CRV, CoT2Graph) and where its capabilities end.
 - Run the end-to-end walkthrough notebook at
-  `experiments/notebooks/end_to_end.ipynb` to see the whole pipeline in action.
+  `rtsa/experiments/notebooks/end_to_end.ipynb` to see the whole pipeline in action.

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-07-20 13:51:47",
+  "n_traces": 10,
+  "deepseek_n": 0,
+  "results": {
+    "RBE": {
+      "n_graphs": 10,
+      "metrics": [
+        "GraphMetrics(trace_id='math_train_00041', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00061', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00065', n_nodes=2, n_edges=1, depth=1.0, branching=0.5, verify_density=0.0, backtrack_rate=0.0, entropy=0.6931471803599453, avg_degree=1.0, graph_density=1.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00079', n_nodes=3, n_edges=2, depth=2.0, branching=0.6666666666666666, verify_density=0.3333333333333333, backtrack_rate=0.0, entropy=0.6365141680948128, avg_degree=1.3333333333333333, graph_density=0.6666666666666666, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00095', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00101', n_nodes=4, n_edges=3, depth=3.0, branching=0.75, verify_density=0.5, backtrack_rate=0.0, entropy=0.6931471803599453, avg_degree=1.5, graph_density=0.5, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00132', n_nodes=2, n_edges=1, depth=1.0, branching=0.5, verify_density=0.0, backtrack_rate=0.0, entropy=0.6931471803599453, avg_degree=1.0, graph_density=1.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00169', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00177', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00230', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)"
+      ],
+      "tsi_mean": 0.7743360406096754,
+      "tdi": 0.7743360406096754,
+      "motif_frequencies": {
+        "M1": 0.0,
+        "M2": 0.0,
+        "M3": 0.0,
+        "M5": 0.20000000298023224,
+        "M6": 0.0,
+        "M7": 0.0,
+        "M8": 0.0
+      }
+    },
+    "SBE": {
+      "n_graphs": 10,
+      "metrics": [
+        "GraphMetrics(trace_id='math_train_00041', n_nodes=2, n_edges=1, depth=1.0, branching=0.5, verify_density=0.0, backtrack_rate=0.0, entropy=0.6931471803599453, avg_degree=1.0, graph_density=1.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00061', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00065', n_nodes=2, n_edges=1, depth=1.0, branching=0.5, verify_density=0.0, backtrack_rate=0.0, entropy=0.6931471803599453, avg_degree=1.0, graph_density=1.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00079', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00095', n_nodes=2, n_edges=1, depth=1.0, branching=0.5, verify_density=0.0, backtrack_rate=0.0, entropy=0.6931471803599453, avg_degree=1.0, graph_density=1.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00101', n_nodes=4, n_edges=3, depth=3.0, branching=0.75, verify_density=0.25, backtrack_rate=0.0, entropy=0.5623351444188083, avg_degree=1.5, graph_density=0.5, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00132', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00169', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00177', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)",
+        "GraphMetrics(trace_id='math_train_00230', n_nodes=1, n_edges=0, depth=0.0, branching=0.0, verify_density=0.0, backtrack_rate=0.0, entropy=-1.000000082690371e-10, avg_degree=0.0, graph_density=0.0, extraction_rate=1.0)"
+      ],
+      "tsi_mean": 0.8669984943393595,
+      "tdi": 0.8669984943393595,
+      "motif_frequencies": {
+        "M1": 0.0,
+        "M2": 0.0,
+        "M3": 0.0,
+        "M5": 0.10000000149011612,
+        "M6": 0.0,
+        "M7": 0.0,
+        "M8": 0.0
+      }
+    }
+  }
+}

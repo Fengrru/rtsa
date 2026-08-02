@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 import numpy as np
 
-from core.types import GraphNode, NodeType, ReasoningTraceGraph
-from analysis.fingerprint import ModelFingerprint, enroll_model, identify_author
+from rtsa.core.types import GraphNode, NodeType, ReasoningTraceGraph
+from rtsa.analysis.fingerprint import ModelFingerprint, enroll_model, identify_author
 
 
 def _make_graph(n_nodes, trace_id="g"):
